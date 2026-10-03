@@ -1,4 +1,0 @@
-#Sat Oct 03 17:41:52 PKT 2026
-base.0=C\:\\Users\\Admin\\Downloads\\reverse_eng\\tuff\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
-renamed.0=classes.dex
-path.0=classes.dex
