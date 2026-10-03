@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">tuff</string>
+    <string name="search_hint">Search or enter URL</string>
+    <string name="choose_search_engine_title">Select Default Search Engine</string>
+    <string name="choose_search_engine_subtitle">Tuff is built for speed and privacy. Choose how you want to explore the web:</string>
+    <string name="search_brave">Brave Search</string>
+    <string name="search_ddg">DuckDuckGo</string>
+    <string name="search_startpage">Startpage</string>
+    <string name="search_custom">Custom Engine</string>
+    <string name="custom_engine_hint">https://example.com/search?q=%s</string>
+    <string name="continue_btn">Continue</string>
+    <string name="change_engine_title">Change Search Engine</string>
+    
+    <!-- Menu items -->
+    <string name="menu_desktop_mode">Desktop Site</string>
+    <string name="menu_search_position">Search Bar Position</string>
+    <string name="menu_downloads">Downloads</string>
+    <string name="menu_zoom">Zoom Controls</string>
+    <string name="menu_new_tab">New Tab</string>
+    <string name="menu_settings">Settings</string>
+
+    <!-- Downloads -->
+    <string name="downloads_title">Downloads</string>
+    <string name="downloading">Downloading…</string>
+    <string name="download_completed">Download completed</string>
+    <string name="download_failed">Download failed</string>
+    <string name="no_downloads">No downloads yet</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Tabs -->
+    <string name="tabs_title">Tabs</string>
+    <string name="close_all_tabs">Close All</string>
+
+    <!-- Position -->
+    <string name="position_top">Top</string>
+    <string name="position_bottom">Bottom</string>
+</resources>

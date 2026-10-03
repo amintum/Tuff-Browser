@@ -1,0 +1,130 @@
+[
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_tabs.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_tabs.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_search.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_search.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_arrow_back.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_arrow_back.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_item_tab.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\item_tab.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_close.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_close.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_home.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_refresh.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_refresh.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_startpage.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_startpage.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_custom_search.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_custom_search.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_dialog_downloads.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\dialog_downloads.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_dialog_tabs.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\dialog_tabs.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_bg_omnibar.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\bg_omnibar.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_arrow_forward.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_arrow_forward.xml"
+    },
+    {
+        "merged": "com.tuff.browser.app-debug-32:/drawable_ic_launcher.xml.flat",
+        "source": "com.tuff.browser.app-main-34:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_launcher.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_bg_badge.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\bg_badge.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_check.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_check.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_dialog_onboarding.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\dialog_onboarding.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_dialog_menu.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\dialog_menu.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_dialog_corner_search_switch.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\dialog_corner_search_switch.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_item_download.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\item_download.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\xml_file_paths.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\xml\\file_paths.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_duckduckgo.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_duckduckgo.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_desktop.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_desktop.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_menu.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_menu.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_brave.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_brave.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_add.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_add.xml"
+    },
+    {
+        "merged": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-debug-32:\\drawable_ic_download.xml.flat",
+        "source": "C:\\Users\\Admin\\.gradle\\daemon\\8.14.5\\com.tuff.browser.app-main-34:\\drawable\\ic_download.xml"
+    }
+]
