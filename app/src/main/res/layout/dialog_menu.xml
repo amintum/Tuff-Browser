@@ -122,8 +122,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_close"
-            android:rotation="45"
+            android:src="@drawable/ic_remove"
             android:contentDescription="Zoom Out" />
 
         <TextView

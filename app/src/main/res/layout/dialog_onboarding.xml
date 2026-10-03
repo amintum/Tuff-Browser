@@ -54,17 +54,17 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
-        <!-- Startpage Option -->
+        <!-- Google Option (With Warning) -->
         <RadioButton
-            android:id="@+id/rb_startpage"
+            android:id="@+id/rb_google"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableStart="@drawable/ic_startpage"
+            android:drawableStart="@drawable/ic_google"
             android:drawablePadding="14dp"
             android:padding="12dp"
-            android:text="@string/search_startpage"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            android:text="Google (Unsafe · Not recommended)"
+            android:textColor="@color/warning_red"
+            android:textSize="15sp" />
 
         <!-- Custom Engine Option -->
         <RadioButton

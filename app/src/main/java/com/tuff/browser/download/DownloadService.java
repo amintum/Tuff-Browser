@@ -1,7 +1,6 @@
 package com.tuff.browser.download;
 
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,14 +8,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 import android.webkit.CookieManager;
-import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.tuff.browser.MainActivity;
 import com.tuff.browser.R;
 import com.tuff.browser.TuffApp;
 
@@ -31,6 +29,7 @@ import java.util.concurrent.Executors;
 
 public class DownloadService extends Service {
 
+    private static final String TAG = "DownloadService";
     public static final String ACTION_START_DOWNLOAD = "com.tuff.browser.START_DOWNLOAD";
     public static final String EXTRA_URL = "extra_url";
     public static final String EXTRA_CONTENT_DISPOSITION = "extra_content_disposition";
@@ -71,7 +70,13 @@ public class DownloadService extends Service {
     private void startDownloadTask(String urlString, String userAgent, String contentDisposition, String mimeType) {
         executor.execute(() -> {
             String filename = URLUtil.guessFileName(urlString, contentDisposition, mimeType);
-            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            filename = filename.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+            // Use app external files directory for 100% permission-free write access on all Android versions
+            File downloadDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (downloadDir == null) {
+                downloadDir = getFilesDir();
+            }
             if (!downloadDir.exists()) {
                 downloadDir.mkdirs();
             }
@@ -86,42 +91,69 @@ public class DownloadService extends Service {
 
             try {
                 task.setStatus(DownloadTask.Status.DOWNLOADING);
-                URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
-                connection.setInstanceFollowRedirects(true);
+                String currentUrl = urlString;
+                int redirects = 0;
 
-                if (userAgent != null) {
-                    connection.setRequestProperty("User-Agent", userAgent);
+                // Handle HTTP to HTTPS and server redirects manually
+                while (redirects < 5) {
+                    URL url = new URL(currentUrl);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setConnectTimeout(20000);
+                    connection.setReadTimeout(20000);
+                    connection.setInstanceFollowRedirects(false);
+
+                    if (userAgent != null) {
+                        connection.setRequestProperty("User-Agent", userAgent);
+                    }
+
+                    String cookies = CookieManager.getInstance().getCookie(currentUrl);
+                    if (cookies != null) {
+                        connection.setRequestProperty("Cookie", cookies);
+                    }
+
+                    long existingLength = destFile.exists() ? destFile.length() : 0;
+                    if (existingLength > 0) {
+                        connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
+                    }
+
+                    connection.connect();
+                    int code = connection.getResponseCode();
+
+                    if (code == HttpURLConnection.HTTP_MOVED_PERM 
+                            || code == HttpURLConnection.HTTP_MOVED_TEMP 
+                            || code == HttpURLConnection.HTTP_SEE_OTHER 
+                            || code == 307 || code == 308) {
+                        String location = connection.getHeaderField("Location");
+                        if (location != null) {
+                            if (!location.startsWith("http://") && !location.startsWith("https://")) {
+                                URL base = new URL(currentUrl);
+                                location = new URL(base, location).toExternalForm();
+                            }
+                            currentUrl = location;
+                            redirects++;
+                            connection.disconnect();
+                            continue;
+                        }
+                    }
+
+                    boolean isRangeAccepted = (code == HttpURLConnection.HTTP_PARTIAL);
+                    long contentLength = connection.getContentLength();
+                    long existing = destFile.exists() ? destFile.length() : 0;
+
+                    if (isRangeAccepted) {
+                        task.setTotalBytes(existing + contentLength);
+                        task.setDownloadedBytes(existing);
+                        out = new FileOutputStream(destFile, true);
+                    } else {
+                        task.setTotalBytes(contentLength);
+                        task.setDownloadedBytes(0);
+                        out = new FileOutputStream(destFile, false);
+                    }
+                    break;
                 }
 
-                // Attach cookies
-                String cookies = CookieManager.getInstance().getCookie(urlString);
-                if (cookies != null) {
-                    connection.setRequestProperty("Cookie", cookies);
-                }
-
-                // Check for HTTP Range resume
-                long existingLength = 0;
-                if (destFile.exists()) {
-                    existingLength = destFile.length();
-                    connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
-                }
-
-                connection.connect();
-                int responseCode = connection.getResponseCode();
-
-                boolean isRangeAccepted = (responseCode == HttpURLConnection.HTTP_PARTIAL);
-                long contentLength = connection.getContentLength();
-                if (isRangeAccepted) {
-                    task.setTotalBytes(existingLength + contentLength);
-                    task.setDownloadedBytes(existingLength);
-                    out = new FileOutputStream(destFile, true);
-                } else {
-                    task.setTotalBytes(contentLength);
-                    task.setDownloadedBytes(0);
-                    out = new FileOutputStream(destFile, false);
+                if (connection == null) {
+                    throw new Exception("Unable to establish connection");
                 }
 
                 in = connection.getInputStream();
@@ -147,6 +179,7 @@ public class DownloadService extends Service {
                 showCompletedNotification(task);
 
             } catch (Exception e) {
+                Log.e(TAG, "Download failed for " + urlString, e);
                 task.setStatus(DownloadTask.Status.FAILED);
                 DownloadRepository.getInstance().notifyFailed(task);
             } finally {

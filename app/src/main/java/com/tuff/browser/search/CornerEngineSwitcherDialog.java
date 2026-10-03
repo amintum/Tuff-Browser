@@ -5,7 +5,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -34,19 +36,31 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
 
         View itemBrave = findViewById(R.id.item_engine_brave);
         View itemDdg = findViewById(R.id.item_engine_ddg);
-        View itemStartpage = findViewById(R.id.item_engine_startpage);
+        View itemGoogle = findViewById(R.id.item_engine_google);
         View itemCustom = findViewById(R.id.item_engine_custom);
 
         ImageView checkBrave = findViewById(R.id.check_brave);
         ImageView checkDdg = findViewById(R.id.check_ddg);
-        ImageView checkStartpage = findViewById(R.id.check_startpage);
+        ImageView checkGoogle = findViewById(R.id.check_google);
         ImageView checkCustom = findViewById(R.id.check_custom);
 
-        String activeId = engineManager.getActiveEngine().getId();
+        TextView tvCustomUrl = findViewById(R.id.tv_custom_engine_url);
+        ImageButton btnEditCustom = findViewById(R.id.btn_edit_custom);
+
+        SearchEngine active = engineManager.getActiveEngine();
+        String activeId = active.getId();
+
         if (checkBrave != null) checkBrave.setVisibility(SearchEngine.ID_BRAVE.equals(activeId) ? View.VISIBLE : View.GONE);
         if (checkDdg != null) checkDdg.setVisibility(SearchEngine.ID_DUCKDUCKGO.equals(activeId) ? View.VISIBLE : View.GONE);
-        if (checkStartpage != null) checkStartpage.setVisibility(SearchEngine.ID_STARTPAGE.equals(activeId) ? View.VISIBLE : View.GONE);
+        if (checkGoogle != null) checkGoogle.setVisibility(SearchEngine.ID_GOOGLE.equals(activeId) ? View.VISIBLE : View.GONE);
         if (checkCustom != null) checkCustom.setVisibility(SearchEngine.ID_CUSTOM.equals(activeId) ? View.VISIBLE : View.GONE);
+
+        // Display current saved custom engine URL
+        for (SearchEngine se : engineManager.getAvailableEngines()) {
+            if (SearchEngine.ID_CUSTOM.equals(se.getId()) && tvCustomUrl != null) {
+                tvCustomUrl.setText(se.getSearchUrlTemplate());
+            }
+        }
 
         if (itemBrave != null) {
             itemBrave.setOnClickListener(v -> selectEngine(SearchEngine.ID_BRAVE));
@@ -54,11 +68,14 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
         if (itemDdg != null) {
             itemDdg.setOnClickListener(v -> selectEngine(SearchEngine.ID_DUCKDUCKGO));
         }
-        if (itemStartpage != null) {
-            itemStartpage.setOnClickListener(v -> selectEngine(SearchEngine.ID_STARTPAGE));
+        if (itemGoogle != null) {
+            itemGoogle.setOnClickListener(v -> selectEngine(SearchEngine.ID_GOOGLE));
         }
         if (itemCustom != null) {
-            itemCustom.setOnClickListener(v -> promptCustomEngineUrl());
+            itemCustom.setOnClickListener(v -> selectEngine(SearchEngine.ID_CUSTOM));
+        }
+        if (btnEditCustom != null) {
+            btnEditCustom.setOnClickListener(v -> promptCustomEngineUrl());
         }
     }
 
@@ -74,8 +91,17 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
         Context context = getContext();
         final EditText input = new EditText(context);
         input.setHint(R.string.custom_engine_hint);
-        input.setText(engineManager.getActiveEngine().getId().equals(SearchEngine.ID_CUSTOM) 
-                ? engineManager.getActiveEngine().getSearchUrlTemplate() : "");
+        
+        SearchEngine custom = null;
+        for (SearchEngine se : engineManager.getAvailableEngines()) {
+            if (SearchEngine.ID_CUSTOM.equals(se.getId())) {
+                custom = se;
+                break;
+            }
+        }
+        if (custom != null) {
+            input.setText(custom.getSearchUrlTemplate());
+        }
 
         new AlertDialog.Builder(context)
                 .setTitle(R.string.search_custom)

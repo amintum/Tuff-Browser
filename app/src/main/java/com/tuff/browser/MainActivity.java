@@ -148,15 +148,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void navigateHome() {
-        SearchEngine engine = engineManager.getActiveEngine();
-        String homeUrl;
-        if (SearchEngine.ID_DUCKDUCKGO.equals(engine.getId())) {
-            homeUrl = "https://duckduckgo.com";
-        } else if (SearchEngine.ID_STARTPAGE.equals(engine.getId())) {
-            homeUrl = "https://www.startpage.com";
-        } else {
-            homeUrl = "https://search.brave.com";
-        }
+        String homeUrl = engineManager.getHomeUrl();
         TuffWebView wv = getActiveWebView();
         if (wv != null) wv.loadUrl(homeUrl);
     }
@@ -193,11 +185,35 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private void openCornerEngineSwitcher() {
         CornerEngineSwitcherDialog dialog = new CornerEngineSwitcherDialog(this, engineManager, newEngine -> {
             updateCornerEngineIcons();
+            TuffWebView wv = getActiveWebView();
+            if (wv == null) return;
+
+            String currentUrl = wv.getUrl();
             EditText activeEt = getActiveOmnibox();
-            String currentText = activeEt.getText().toString().trim();
-            if (!currentText.isEmpty() && !currentText.startsWith("http")) {
-                loadQueryOrUrl(currentText);
+            String currentInput = (activeEt != null) ? activeEt.getText().toString().trim() : "";
+
+            // 1. If currently on a search engine results page, switch query to new engine
+            String query = engineManager.extractSearchQuery(currentUrl);
+            if (query != null && !query.isEmpty()) {
+                String newSearchUrl = engineManager.buildSearchUrl(query);
+                wv.loadUrl(newSearchUrl);
+                return;
             }
+
+            // 2. If the user had typed an unsubmitted query in the search box
+            if (!currentInput.isEmpty() && !currentInput.startsWith("http://") && !currentInput.startsWith("https://")) {
+                loadQueryOrUrl(currentInput);
+                return;
+            }
+
+            // 3. If currently on a home page, blank page, or search engine home page, load new engine home
+            if (currentUrl == null || "about:blank".equals(currentUrl) || engineManager.isSearchEnginePage(currentUrl)) {
+                wv.loadUrl(engineManager.getHomeUrl());
+                return;
+            }
+
+            // 4. Otherwise user is browsing regular site (e.g. github.com)
+            Toast.makeText(this, "Default engine: " + newEngine.getName(), Toast.LENGTH_SHORT).show();
         });
         dialog.show();
     }

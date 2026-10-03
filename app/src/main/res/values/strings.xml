@@ -6,7 +6,8 @@
     <string name="choose_search_engine_subtitle">Tuff is built for speed and privacy. Choose how you want to explore the web:</string>
     <string name="search_brave">Brave Search</string>
     <string name="search_ddg">DuckDuckGo</string>
-    <string name="search_startpage">Startpage</string>
+    <string name="search_google">Google</string>
+    <string name="search_google_warning">Unsafe · Not recommended</string>
     <string name="search_custom">Custom Engine</string>
     <string name="custom_engine_hint">https://example.com/search?q=%s</string>
     <string name="continue_btn">Continue</string>

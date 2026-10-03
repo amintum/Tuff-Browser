@@ -79,9 +79,9 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Startpage -->
+    <!-- Google (Unsafe Warning) -->
     <LinearLayout
-        android:id="@+id/item_engine_startpage"
+        android:id="@+id/item_engine_google"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -92,26 +92,40 @@
         <ImageView
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:src="@drawable/ic_startpage" />
+            android:src="@drawable/ic_google" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:text="@string/search_startpage"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/search_google"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/search_google_warning"
+                android:textColor="@color/warning_red"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <ImageView
-            android:id="@+id/check_startpage"
+            android:id="@+id/check_google"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_check"
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Custom -->
+    <!-- Custom Engine -->
     <LinearLayout
         android:id="@+id/item_engine_custom"
         android:layout_width="match_parent"
@@ -126,19 +140,44 @@
             android:layout_height="28dp"
             android:src="@drawable/ic_custom_search" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:text="@string/search_custom"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/search_custom"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_custom_engine_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:text="@string/custom_engine_hint"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_edit_custom"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_custom_search"
+            android:contentDescription="Edit URL" />
 
         <ImageView
             android:id="@+id/check_custom"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:layout_marginStart="8dp"
             android:src="@drawable/ic_check"
             android:visibility="gone" />
     </LinearLayout>

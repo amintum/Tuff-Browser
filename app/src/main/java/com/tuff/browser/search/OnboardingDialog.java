@@ -42,7 +42,7 @@ public class OnboardingDialog extends BottomSheetDialog {
         RadioGroup rg = findViewById(R.id.rg_search_engines);
         RadioButton rbBrave = findViewById(R.id.rb_brave);
         RadioButton rbDdg = findViewById(R.id.rb_ddg);
-        RadioButton rbStartpage = findViewById(R.id.rb_startpage);
+        RadioButton rbGoogle = findViewById(R.id.rb_google);
         RadioButton rbCustom = findViewById(R.id.rb_custom);
         EditText etCustomUrl = findViewById(R.id.et_custom_engine_url);
         MaterialButton btnContinue = findViewById(R.id.btn_continue);
@@ -64,8 +64,8 @@ public class OnboardingDialog extends BottomSheetDialog {
                 String chosenId = SearchEngine.ID_BRAVE;
                 if (rbDdg != null && rbDdg.isChecked()) {
                     chosenId = SearchEngine.ID_DUCKDUCKGO;
-                } else if (rbStartpage != null && rbStartpage.isChecked()) {
-                    chosenId = SearchEngine.ID_STARTPAGE;
+                } else if (rbGoogle != null && rbGoogle.isChecked()) {
+                    chosenId = SearchEngine.ID_GOOGLE;
                 } else if (rbCustom != null && rbCustom.isChecked()) {
                     chosenId = SearchEngine.ID_CUSTOM;
                     if (etCustomUrl != null) {

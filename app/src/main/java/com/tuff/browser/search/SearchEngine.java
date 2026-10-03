@@ -6,7 +6,7 @@ import com.tuff.browser.R;
 public class SearchEngine {
     public static final String ID_BRAVE = "brave";
     public static final String ID_DUCKDUCKGO = "duckduckgo";
-    public static final String ID_STARTPAGE = "startpage";
+    public static final String ID_GOOGLE = "google";
     public static final String ID_CUSTOM = "custom";
 
     private final String id;
@@ -14,12 +14,18 @@ public class SearchEngine {
     private final String searchUrlTemplate;
     @DrawableRes
     private final int iconRes;
+    private final String warningText;
 
-    public SearchEngine(String id, String name, String searchUrlTemplate, @DrawableRes int iconRes) {
+    public SearchEngine(String id, String name, String searchUrlTemplate, @DrawableRes int iconRes, String warningText) {
         this.id = id;
         this.name = name;
         this.searchUrlTemplate = searchUrlTemplate;
         this.iconRes = iconRes;
+        this.warningText = warningText;
+    }
+
+    public SearchEngine(String id, String name, String searchUrlTemplate, @DrawableRes int iconRes) {
+        this(id, name, searchUrlTemplate, iconRes, null);
     }
 
     public String getId() {
@@ -39,6 +45,14 @@ public class SearchEngine {
         return iconRes;
     }
 
+    public String getWarningText() {
+        return warningText;
+    }
+
+    public boolean hasWarning() {
+        return warningText != null && !warningText.isEmpty();
+    }
+
     public static SearchEngine createBrave() {
         return new SearchEngine(ID_BRAVE, "Brave Search", "https://search.brave.com/search?q=%s", R.drawable.ic_brave);
     }
@@ -47,11 +61,12 @@ public class SearchEngine {
         return new SearchEngine(ID_DUCKDUCKGO, "DuckDuckGo", "https://duckduckgo.com/?q=%s", R.drawable.ic_duckduckgo);
     }
 
-    public static SearchEngine createStartpage() {
-        return new SearchEngine(ID_STARTPAGE, "Startpage", "https://www.startpage.com/sp/search?query=%s", R.drawable.ic_startpage);
+    public static SearchEngine createGoogle() {
+        return new SearchEngine(ID_GOOGLE, "Google", "https://www.google.com/search?q=%s", R.drawable.ic_google, "Unsafe · Not recommended");
     }
 
     public static SearchEngine createCustom(String customUrl) {
-        return new SearchEngine(ID_CUSTOM, "Custom Engine", customUrl, R.drawable.ic_custom_search);
+        String url = (customUrl == null || customUrl.trim().isEmpty()) ? "https://search.brave.com/search?q=%s" : customUrl;
+        return new SearchEngine(ID_CUSTOM, "Custom Engine", url, R.drawable.ic_custom_search);
     }
 }
