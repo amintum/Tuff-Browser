@@ -38,7 +38,7 @@ public class Prefs {
     }
 
     public String getCustomEngineUrl() {
-        return prefs.getString(KEY_CUSTOM_ENGINE_URL, "https://search.brave.com/search?q=%s");
+        return prefs.getString(KEY_CUSTOM_ENGINE_URL, "");
     }
 
     public void setCustomEngineUrl(String url) {

@@ -83,12 +83,7 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
     }
 
     @Override
-    public void onDownloadCompleted(DownloadTask task) {
-        onDownloadProgress(task);
-    }
-
-    @Override
-    public void onDownloadFailed(DownloadTask task) {
+    public void onDownloadStatusChanged(DownloadTask task) {
         onDownloadProgress(task);
     }
 
@@ -115,19 +110,72 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
         public void onBindViewHolder(@NonNull DownloadViewHolder holder, int position) {
             DownloadTask task = items.get(position);
             holder.tvFilename.setText(task.getFilename());
-            holder.progressBar.setProgress(task.getProgressPercentage());
 
-            if (task.getStatus() == DownloadTask.Status.COMPLETED) {
+            DownloadTask.Status status = task.getStatus();
+
+            if (status == DownloadTask.Status.COMPLETED) {
+                holder.progressBar.setVisibility(View.GONE);
                 holder.tvStatus.setText(R.string.download_completed);
-                holder.progressBar.setVisibility(View.GONE);
-            } else if (task.getStatus() == DownloadTask.Status.FAILED) {
-                holder.tvStatus.setText(R.string.download_failed);
-                holder.progressBar.setVisibility(View.GONE);
-            } else {
-                holder.tvStatus.setText(task.getProgressPercentage() + "%");
+                holder.tvInfo.setText(task.getFormattedProgress());
+                holder.btnPauseResume.setVisibility(View.GONE);
+                holder.btnCancel.setImageResource(R.drawable.ic_delete);
+                holder.btnCancel.setContentDescription(getContext().getString(R.string.delete));
+
+            } else if (status == DownloadTask.Status.PAUSED) {
                 holder.progressBar.setVisibility(View.VISIBLE);
+                holder.progressBar.setProgress(task.getProgressPercentage());
+                holder.tvStatus.setText(R.string.download_paused);
+                holder.tvInfo.setText(task.getFormattedProgress());
+                holder.btnPauseResume.setVisibility(View.VISIBLE);
+                holder.btnPauseResume.setImageResource(R.drawable.ic_play);
+                holder.btnCancel.setImageResource(R.drawable.ic_close);
+
+            } else if (status == DownloadTask.Status.FAILED) {
+                holder.progressBar.setVisibility(View.GONE);
+                holder.tvStatus.setText(R.string.download_failed);
+                holder.tvInfo.setText(task.getFormattedProgress());
+                holder.btnPauseResume.setVisibility(View.VISIBLE);
+                holder.btnPauseResume.setImageResource(R.drawable.ic_play);
+                holder.btnCancel.setImageResource(R.drawable.ic_close);
+
+            } else { // DOWNLOADING or PENDING
+                holder.progressBar.setVisibility(View.VISIBLE);
+                holder.progressBar.setProgress(task.getProgressPercentage());
+                holder.tvStatus.setText(task.getProgressPercentage() + "%");
+                String speed = task.getFormattedSpeed();
+                holder.tvInfo.setText(task.getFormattedProgress() + (speed.isEmpty() ? "" : " • " + speed));
+                holder.btnPauseResume.setVisibility(View.VISIBLE);
+                holder.btnPauseResume.setImageResource(R.drawable.ic_pause);
+                holder.btnCancel.setImageResource(R.drawable.ic_close);
             }
 
+            // Pause / Resume action
+            holder.btnPauseResume.setOnClickListener(v -> {
+                Context context = getContext();
+                if (task.getStatus() == DownloadTask.Status.DOWNLOADING) {
+                    DownloadService.pause(context, task.getId());
+                } else {
+                    DownloadService.resume(context, task.getId());
+                }
+            });
+
+            // Cancel / Delete action
+            holder.btnCancel.setOnClickListener(v -> {
+                Context context = getContext();
+                if (task.getStatus() == DownloadTask.Status.COMPLETED) {
+                    File file = task.getDestinationFile();
+                    if (file != null && file.exists()) {
+                        file.delete();
+                    }
+                    repository.removeTask(task.getId());
+                    updateData(repository.getTasks());
+                    updateEmptyState();
+                } else {
+                    DownloadService.cancel(context, task.getId());
+                }
+            });
+
+            // Open completed download
             holder.itemView.setOnClickListener(v -> {
                 if (task.getStatus() == DownloadTask.Status.COMPLETED) {
                     openFile(task);
@@ -159,16 +207,20 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
 
     private static class DownloadViewHolder extends RecyclerView.ViewHolder {
         TextView tvFilename;
+        TextView tvInfo;
         TextView tvStatus;
         ProgressBar progressBar;
-        ImageButton btnAction;
+        ImageButton btnPauseResume;
+        ImageButton btnCancel;
 
         DownloadViewHolder(@NonNull View itemView) {
             super(itemView);
             tvFilename = itemView.findViewById(R.id.tv_download_filename);
+            tvInfo = itemView.findViewById(R.id.tv_download_info);
             tvStatus = itemView.findViewById(R.id.tv_download_status);
             progressBar = itemView.findViewById(R.id.pb_download);
-            btnAction = itemView.findViewById(R.id.btn_download_action);
+            btnPauseResume = itemView.findViewById(R.id.btn_download_pause_resume);
+            btnCancel = itemView.findViewById(R.id.btn_download_cancel);
         }
     }
 }

@@ -58,7 +58,13 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
         // Display current saved custom engine URL
         for (SearchEngine se : engineManager.getAvailableEngines()) {
             if (SearchEngine.ID_CUSTOM.equals(se.getId()) && tvCustomUrl != null) {
-                tvCustomUrl.setText(se.getSearchUrlTemplate());
+                if (se.getSearchUrlTemplate().isEmpty()) {
+                    tvCustomUrl.setText("");
+                    tvCustomUrl.setVisibility(View.GONE);
+                } else {
+                    tvCustomUrl.setText(se.getSearchUrlTemplate());
+                    tvCustomUrl.setVisibility(View.VISIBLE);
+                }
             }
         }
 
@@ -72,7 +78,20 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
             itemGoogle.setOnClickListener(v -> selectEngine(SearchEngine.ID_GOOGLE));
         }
         if (itemCustom != null) {
-            itemCustom.setOnClickListener(v -> selectEngine(SearchEngine.ID_CUSTOM));
+            itemCustom.setOnClickListener(v -> {
+                SearchEngine custom = null;
+                for (SearchEngine se : engineManager.getAvailableEngines()) {
+                    if (SearchEngine.ID_CUSTOM.equals(se.getId())) {
+                        custom = se;
+                        break;
+                    }
+                }
+                if (custom == null || custom.getSearchUrlTemplate().isEmpty()) {
+                    promptCustomEngineUrl();
+                } else {
+                    selectEngine(SearchEngine.ID_CUSTOM);
+                }
+            });
         }
         if (btnEditCustom != null) {
             btnEditCustom.setOnClickListener(v -> promptCustomEngineUrl());
@@ -99,8 +118,10 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
                 break;
             }
         }
-        if (custom != null) {
+        if (custom != null && !custom.getSearchUrlTemplate().isEmpty()) {
             input.setText(custom.getSearchUrlTemplate());
+        } else {
+            input.setText("");
         }
 
         new AlertDialog.Builder(context)

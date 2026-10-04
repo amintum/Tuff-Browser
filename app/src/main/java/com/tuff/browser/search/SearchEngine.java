@@ -66,7 +66,7 @@ public class SearchEngine {
     }
 
     public static SearchEngine createCustom(String customUrl) {
-        String url = (customUrl == null || customUrl.trim().isEmpty()) ? "https://search.brave.com/search?q=%s" : customUrl;
-        return new SearchEngine(ID_CUSTOM, "Custom Engine", url, R.drawable.ic_custom_search);
+        String url = (customUrl == null) ? "" : customUrl.trim();
+        return new SearchEngine(ID_CUSTOM, "Another Search Engine", url, R.drawable.ic_custom_search);
     }
 }

@@ -11,8 +11,7 @@ public class DownloadRepository {
 
     public interface DownloadObserver {
         void onDownloadProgress(DownloadTask task);
-        void onDownloadCompleted(DownloadTask task);
-        void onDownloadFailed(DownloadTask task);
+        void onDownloadStatusChanged(DownloadTask task);
     }
 
     private DownloadRepository() {}
@@ -26,7 +25,15 @@ public class DownloadRepository {
 
     public void addTask(DownloadTask task) {
         tasks.add(0, task);
-        notifyProgress(task);
+        notifyStatusChanged(task);
+    }
+
+    public void removeTask(String id) {
+        DownloadTask task = findTaskById(id);
+        if (task != null) {
+            tasks.remove(task);
+            notifyStatusChanged(task);
+        }
     }
 
     public List<DownloadTask> getTasks() {
@@ -58,15 +65,9 @@ public class DownloadRepository {
         }
     }
 
-    public void notifyCompleted(DownloadTask task) {
+    public void notifyStatusChanged(DownloadTask task) {
         for (DownloadObserver o : observers) {
-            o.onDownloadCompleted(task);
-        }
-    }
-
-    public void notifyFailed(DownloadTask task) {
-        for (DownloadObserver o : observers) {
-            o.onDownloadFailed(task);
+            o.onDownloadStatusChanged(task);
         }
     }
 }
