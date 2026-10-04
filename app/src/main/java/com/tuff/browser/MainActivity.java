@@ -93,6 +93,19 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             startUrl = intent.getData().toString();
         }
         tabManager.createTab(startUrl);
+
+        if (intent != null && intent.getBooleanExtra("open_downloads", false)) {
+            new DownloadManagerSheet(this).show();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && intent.getBooleanExtra("open_downloads", false)) {
+            new DownloadManagerSheet(this).show();
+        }
     }
 
     private void initViews() {

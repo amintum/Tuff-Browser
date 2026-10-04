@@ -190,17 +190,25 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
 
         private void openFile(DownloadTask task) {
             File file = task.getDestinationFile();
-            if (file != null && file.exists()) {
-                Context context = getContext();
-                try {
-                    Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(uri, task.getMimeType() != null ? task.getMimeType() : "*/*");
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                } catch (Exception e) {
-                    Toast.makeText(context, "Cannot open file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            if (file == null || !file.exists()) {
+                File downloadDir = getContext().getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
+                if (downloadDir != null) {
+                    File fallback = new File(downloadDir, task.getFilename());
+                    if (fallback.exists()) file = fallback;
                 }
+            }
+            if (file == null || !file.exists()) {
+                File publicDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS);
+                if (publicDir != null) {
+                    File fallback = new File(publicDir, task.getFilename());
+                    if (fallback.exists()) file = fallback;
+                }
+            }
+
+            if (file != null && file.exists()) {
+                FileUtils.openDownloadedFile(getContext(), file, task.getMimeType());
+            } else {
+                Toast.makeText(getContext(), R.string.file_not_found, Toast.LENGTH_SHORT).show();
             }
         }
     }

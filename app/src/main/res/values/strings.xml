@@ -35,6 +35,9 @@
     <string name="resume">Resume</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="allow_install_permission">Please enable \"Install unknown apps\" for Tuff to install APKs</string>
+    <string name="file_not_found">File not found</string>
+    <string name="cannot_open_file">Cannot open file</string>
 
     <!-- Tabs -->
     <string name="tabs_title">Tabs</string>

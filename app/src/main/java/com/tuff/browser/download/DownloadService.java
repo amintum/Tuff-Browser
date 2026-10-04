@@ -115,13 +115,22 @@ public class DownloadService extends Service {
             String contentDisposition = intent.getStringExtra(EXTRA_CONTENT_DISPOSITION);
             String mimeType = intent.getStringExtra(EXTRA_MIMETYPE);
 
-            String filename = URLUtil.guessFileName(url, contentDisposition, mimeType);
-            filename = filename.replaceAll("[\\\\/:*?\"<>|]", "_");
+            String rawFilename = URLUtil.guessFileName(url, contentDisposition, mimeType);
 
             File downloadDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
             if (downloadDir == null) downloadDir = getFilesDir();
             if (!downloadDir.exists()) downloadDir.mkdirs();
+
+            File publicDir = null;
+            try {
+                publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            } catch (Exception ignored) {}
+
+            String filename = FileUtils.resolveUniqueFilename(downloadDir, publicDir, rawFilename);
             File destFile = new File(downloadDir, filename);
+            if (destFile.exists()) {
+                destFile.delete();
+            }
 
             DownloadTask task = new DownloadTask(
                     UUID.randomUUID().toString(),
@@ -130,7 +139,7 @@ public class DownloadService extends Service {
                     contentDisposition,
                     filename,
                     destFile,
-                    mimeType
+                    FileUtils.getEffectiveMimeType(filename, mimeType)
             );
             DownloadRepository.getInstance().addTask(task);
 
@@ -272,6 +281,28 @@ public class DownloadService extends Service {
                             connection.disconnect();
                             continue;
                         }
+                    }
+
+                    // If range was rejected (416 Range Not Satisfiable), reset file and download from beginning
+                    if (code == 416 && existingLength > 0) {
+                        if (destFile.exists()) destFile.delete();
+                        connection.disconnect();
+                        connection = (HttpURLConnection) new URL(currentUrl).openConnection();
+                        activeConnections.put(task.getId(), connection);
+                        connection.setConnectTimeout(20000);
+                        connection.setReadTimeout(20000);
+                        if (task.getUserAgent() != null) {
+                            connection.setRequestProperty("User-Agent", task.getUserAgent());
+                        }
+                        if (cookies != null) {
+                            connection.setRequestProperty("Cookie", cookies);
+                        }
+                        connection.connect();
+                        code = connection.getResponseCode();
+                    }
+
+                    if (code >= 400) {
+                        throw new java.io.IOException("Server returned HTTP " + code);
                     }
 
                     boolean isRangeAccepted = (code == HttpURLConnection.HTTP_PARTIAL);
@@ -430,17 +461,7 @@ public class DownloadService extends Service {
     }
 
     private void showCompletedNotification(DownloadTask task) {
-        PendingIntent piOpen = null;
-        File file = task.getDestinationFile();
-        if (file != null && file.exists()) {
-            try {
-                Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
-                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
-                viewIntent.setDataAndType(uri, task.getMimeType() != null ? task.getMimeType() : "*/*");
-                viewIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                piOpen = PendingIntent.getActivity(this, getNotificationId(task.getId()) + 4, viewIntent, PendingIntent.FLAG_IMMUTABLE);
-            } catch (Exception ignored) {}
-        }
+        PendingIntent piOpen = FileUtils.createViewPendingIntent(this, task, getNotificationId(task.getId()) + 4);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, TuffApp.CHANNEL_DOWNLOADS)
                 .setContentTitle(task.getFilename())
@@ -478,18 +499,13 @@ public class DownloadService extends Service {
         File source = task.getDestinationFile();
         if (source == null || !source.exists() || source.length() == 0) return;
 
+        String mime = FileUtils.getEffectiveMimeType(task.getFilename(), task.getMimeType());
+
         // 1. On Android 10+ (API 29+), insert into MediaStore.Downloads
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Downloads.DISPLAY_NAME, task.getFilename());
-                String mime = task.getMimeType();
-                if (mime == null || mime.isEmpty()) {
-                    mime = URLUtil.guessFileName(task.getUrl(), task.getContentDisposition(), null);
-                    String ext = MimeTypeMap.getFileExtensionFromUrl(mime);
-                    mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
-                }
-                if (mime == null) mime = "application/octet-stream";
                 values.put(MediaStore.Downloads.MIME_TYPE, mime);
                 values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
                 values.put(MediaStore.Downloads.IS_PENDING, 1);
@@ -531,9 +547,8 @@ public class DownloadService extends Service {
                     }
                     os.flush();
                 }
-                task.setDestinationFile(publicFile);
             }
-            MediaScannerConnection.scanFile(this, new String[]{publicFile.getAbsolutePath()}, new String[]{task.getMimeType()}, null);
+            MediaScannerConnection.scanFile(this, new String[]{publicFile.getAbsolutePath()}, new String[]{mime}, null);
         } catch (Exception e) {
             Log.e(TAG, "Direct public file copy error: " + e.getMessage(), e);
         }
