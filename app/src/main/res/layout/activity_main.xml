@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_light">
+    android:background="@color/background_dark">
 
     <!-- TOP BAR CONTAINER (Visible when position == TOP) -->
     <LinearLayout
@@ -27,9 +27,8 @@
             android:paddingVertical="8dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_weight="1"
                 android:background="@drawable/bg_omnibar"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -61,18 +60,105 @@
                     android:textColorHint="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <!-- Refresh / Action -->
+                <!-- Tabs Badge -->
+                <FrameLayout
+                    android:id="@+id/btn_tabs_top"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:id="@+id/tv_tabs_count_top"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_badge"
+                        android:gravity="center"
+                        android:text="1"
+                        android:textColor="@color/text_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <!-- Menu Button (Three dots / colon) -->
                 <ImageView
-                    android:id="@+id/btn_refresh_top"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:id="@+id/btn_menu_top"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Refresh"
-                    app:tint="@color/icon_tint"
-                    android:src="@drawable/ic_refresh" />
+                    android:contentDescription="Menu"
+                    android:src="@drawable/ic_menu" />
+
             </LinearLayout>
 
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- FIND IN PAGE BAR (Overlays/Replaces Omnibar when active) -->
+    <LinearLayout
+        android:id="@+id/container_find_in_page"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/surface_card"
+        android:paddingHorizontal="10dp"
+        android:elevation="6dp"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/et_find_in_page"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_omnibar"
+            android:hint="Find in page"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:paddingHorizontal="12dp"
+            android:singleLine="true"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_find_match_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:text="0/0"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/btn_find_prev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="5dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Previous match"
+            android:src="@drawable/ic_arrow_back" />
+
+        <ImageView
+            android:id="@+id/btn_find_next"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="5dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next match"
+            android:src="@drawable/ic_arrow_forward" />
+
+        <ImageView
+            android:id="@+id/btn_find_close"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="5dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close search"
+            android:src="@drawable/ic_close" />
     </LinearLayout>
 
     <!-- LOADING PROGRESS BAR -->
@@ -84,13 +170,22 @@
         android:progressTint="@color/accent"
         android:visibility="gone" />
 
-    <!-- WEBVIEW CONTAINER -->
-    <FrameLayout
-        android:id="@+id/webview_container"
+    <!-- SWIPE TO REFRESH LAYOUT (Circular indicator on swipe down) -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/background_dark" />
+        android:background="@color/background_dark">
+
+        <!-- WEBVIEW CONTAINER -->
+        <FrameLayout
+            android:id="@+id/webview_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/background_dark" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- BOTTOM BAR CONTAINER (Visible when position == BOTTOM by default) -->
     <LinearLayout
@@ -114,13 +209,11 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingHorizontal="10dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="4dp">
+            android:paddingVertical="8dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_weight="1"
                 android:background="@drawable/bg_omnibar"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -152,90 +245,37 @@
                     android:textColorHint="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <!-- Refresh / Action -->
+                <!-- Tabs Badge -->
+                <FrameLayout
+                    android:id="@+id/btn_tabs_bottom"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:id="@+id/tv_tabs_count_bottom"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_badge"
+                        android:gravity="center"
+                        android:text="1"
+                        android:textColor="@color/text_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <!-- Menu Button (Three dots / colon) -->
                 <ImageView
-                    android:id="@+id/btn_refresh_bottom"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:id="@+id/btn_menu_bottom"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Refresh"
-                    app:tint="@color/icon_tint"
-                    android:src="@drawable/ic_refresh" />
+                    android:contentDescription="Menu"
+                    android:src="@drawable/ic_menu" />
+
             </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- NAVIGATION ACTION BAR -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <!-- Back -->
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back"
-                app:tint="@color/icon_tint"
-                android:src="@drawable/ic_arrow_back" />
-
-            <!-- Forward -->
-            <ImageButton
-                android:id="@+id/btn_forward"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Forward"
-                app:tint="@color/icon_tint"
-                android:src="@drawable/ic_arrow_forward" />
-
-            <!-- Home -->
-            <ImageButton
-                android:id="@+id/btn_home"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Home"
-                app:tint="@color/icon_tint"
-                android:src="@drawable/ic_home" />
-
-            <!-- Tabs Badge Container -->
-            <FrameLayout
-                android:id="@+id/btn_tabs"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless">
-
-                <TextView
-                    android:id="@+id/tv_tabs_count"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_badge"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <!-- Menu -->
-            <ImageButton
-                android:id="@+id/btn_menu"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Menu"
-                app:tint="@color/icon_tint"
-                android:src="@drawable/ic_menu" />
 
         </LinearLayout>
 

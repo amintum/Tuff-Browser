@@ -9,11 +9,14 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -23,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
@@ -53,18 +57,30 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private FrameLayout webViewContainer;
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private LinearLayout containerTopBar;
-    private LinearLayout layoutBottomOmnibar;
+    private LinearLayout containerBottomBar;
 
     private EditText etOmniboxTop;
     private EditText etOmniboxBottom;
     private ImageView btnCornerEngineTop;
     private ImageView btnCornerEngineBottom;
-    private ImageView btnRefreshTop;
-    private ImageView btnRefreshBottom;
 
-    private TextView tvTabsCount;
+    private View btnTabsTop;
+    private View btnTabsBottom;
+    private TextView tvTabsCountTop;
+    private TextView tvTabsCountBottom;
+    private View btnMenuTop;
+    private View btnMenuBottom;
+
+    // In-page search bar
+    private LinearLayout containerFindInPage;
+    private EditText etFindInPage;
+    private TextView tvFindMatchCount;
+    private ImageView btnFindPrev;
+    private ImageView btnFindNext;
+    private ImageView btnFindClose;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,18 +128,27 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private void initViews() {
         webViewContainer = findViewById(R.id.webview_container);
         progressBar = findViewById(R.id.progress_loading);
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+
+        swipeRefreshLayout.setColorSchemeColors(ContextCompat.getColor(this, R.color.accent));
+        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.surface_card));
 
         containerTopBar = findViewById(R.id.container_top_bar);
-        layoutBottomOmnibar = findViewById(R.id.layout_bottom_omnibar);
+        containerBottomBar = findViewById(R.id.container_bottom_bar);
 
         etOmniboxTop = findViewById(R.id.et_omnibox_top);
         etOmniboxBottom = findViewById(R.id.et_omnibox_bottom);
         btnCornerEngineTop = findViewById(R.id.btn_corner_engine_top);
         btnCornerEngineBottom = findViewById(R.id.btn_corner_engine_bottom);
-        btnRefreshTop = findViewById(R.id.btn_refresh_top);
-        btnRefreshBottom = findViewById(R.id.btn_refresh_bottom);
 
-        tvTabsCount = findViewById(R.id.tv_tabs_count);
+        btnTabsTop = findViewById(R.id.btn_tabs_top);
+        btnTabsBottom = findViewById(R.id.btn_tabs_bottom);
+        tvTabsCountTop = findViewById(R.id.tv_tabs_count_top);
+        tvTabsCountBottom = findViewById(R.id.tv_tabs_count_bottom);
+        btnMenuTop = findViewById(R.id.btn_menu_top);
+        btnMenuBottom = findViewById(R.id.btn_menu_bottom);
+
+        initFindInPage();
     }
 
     private void setupListeners() {
@@ -136,20 +161,103 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         setupOmnibox(etOmniboxTop);
         setupOmnibox(etOmniboxBottom);
 
-        // Refresh buttons
-        View.OnClickListener refreshListener = v -> {
-            TuffWebView wv = getActiveWebView();
-            if (wv != null) wv.reload();
-        };
-        btnRefreshTop.setOnClickListener(refreshListener);
-        btnRefreshBottom.setOnClickListener(refreshListener);
+        // Tab sheet action
+        View.OnClickListener tabsListener = v -> openTabSheet();
+        btnTabsTop.setOnClickListener(tabsListener);
+        btnTabsBottom.setOnClickListener(tabsListener);
 
-        // Navigation bar
-        findViewById(R.id.btn_back).setOnClickListener(v -> handleBack());
-        findViewById(R.id.btn_forward).setOnClickListener(v -> handleForward());
-        findViewById(R.id.btn_home).setOnClickListener(v -> navigateHome());
-        findViewById(R.id.btn_tabs).setOnClickListener(v -> openTabSheet());
-        findViewById(R.id.btn_menu).setOnClickListener(v -> openMenuSheet());
+        // Menu sheet action
+        View.OnClickListener menuListener = v -> openMenuSheet();
+        btnMenuTop.setOnClickListener(menuListener);
+        btnMenuBottom.setOnClickListener(menuListener);
+
+        // Swipe-down-to-refresh with circular indicator
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            TuffWebView wv = getActiveWebView();
+            if (wv != null) {
+                wv.reload();
+            } else {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+        swipeRefreshLayout.setOnChildScrollUpCallback((parent, child) -> {
+            TuffWebView wv = getActiveWebView();
+            return wv != null && wv.getScrollY() > 0;
+        });
+    }
+
+    private void initFindInPage() {
+        containerFindInPage = findViewById(R.id.container_find_in_page);
+        etFindInPage = findViewById(R.id.et_find_in_page);
+        tvFindMatchCount = findViewById(R.id.tv_find_match_count);
+        btnFindPrev = findViewById(R.id.btn_find_prev);
+        btnFindNext = findViewById(R.id.btn_find_next);
+        btnFindClose = findViewById(R.id.btn_find_close);
+
+        etFindInPage.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                TuffWebView wv = getActiveWebView();
+                if (wv == null) return;
+                String query = s.toString();
+                if (query.trim().isEmpty()) {
+                    wv.clearMatches();
+                    tvFindMatchCount.setVisibility(View.GONE);
+                } else {
+                    wv.findAllAsync(query);
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        btnFindPrev.setOnClickListener(v -> {
+            TuffWebView wv = getActiveWebView();
+            if (wv != null) wv.findNext(false);
+        });
+
+        btnFindNext.setOnClickListener(v -> {
+            TuffWebView wv = getActiveWebView();
+            if (wv != null) wv.findNext(true);
+        });
+
+        btnFindClose.setOnClickListener(v -> hideFindInPage());
+    }
+
+    private void showFindInPage() {
+        containerTopBar.setVisibility(View.GONE);
+        containerBottomBar.setVisibility(View.GONE);
+        containerFindInPage.setVisibility(View.VISIBLE);
+
+        etFindInPage.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(etFindInPage, InputMethodManager.SHOW_IMPLICIT);
+        }
+
+        TuffWebView wv = getActiveWebView();
+        if (wv != null) {
+            wv.setFindListener((activeMatchOrdinal, numberOfMatches, isDoneCounting) -> {
+                if (numberOfMatches == 0) {
+                    tvFindMatchCount.setText("0/0");
+                    tvFindMatchCount.setVisibility(View.VISIBLE);
+                } else {
+                    tvFindMatchCount.setText((activeMatchOrdinal + 1) + "/" + numberOfMatches);
+                    tvFindMatchCount.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+    }
+
+    private void hideFindInPage() {
+        containerFindInPage.setVisibility(View.GONE);
+        hideKeyboard(etFindInPage);
+        etFindInPage.setText("");
+        tvFindMatchCount.setVisibility(View.GONE);
+        TuffWebView wv = getActiveWebView();
+        if (wv != null) {
+            wv.clearMatches();
+        }
+        applySearchBarPosition();
     }
 
     private void setupOmnibox(EditText et) {
@@ -180,6 +288,10 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void handleBack() {
+        if (containerFindInPage != null && containerFindInPage.getVisibility() == View.VISIBLE) {
+            hideFindInPage();
+            return;
+        }
         TuffWebView wv = getActiveWebView();
         if (wv != null && wv.canGoBack()) {
             wv.goBack();
@@ -318,13 +430,13 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         boolean isTop = Prefs.POSITION_TOP.equals(prefs.getSearchBarPosition());
         if (isTop) {
             containerTopBar.setVisibility(View.VISIBLE);
-            layoutBottomOmnibar.setVisibility(View.GONE);
+            containerBottomBar.setVisibility(View.GONE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.surface_card));
             }
         } else {
             containerTopBar.setVisibility(View.GONE);
-            layoutBottomOmnibar.setVisibility(View.VISIBLE);
+            containerBottomBar.setVisibility(View.VISIBLE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.primary_dark));
             }
@@ -363,7 +475,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     @Override
     public void onTabCountChanged(int count) {
-        tvTabsCount.setText(String.valueOf(count));
+        String countStr = String.valueOf(count);
+        if (tvTabsCountTop != null) tvTabsCountTop.setText(countStr);
+        if (tvTabsCountBottom != null) tvTabsCountBottom.setText(countStr);
     }
 
     private void attachWebViewCallbacks(TabModel tab) {
@@ -380,6 +494,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             @Override
             public void onPageFinished(String url) {
                 progressBar.setVisibility(View.GONE);
+                if (swipeRefreshLayout != null) {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
                 tab.setUrl(url);
                 updateOmniboxText(url);
             }
@@ -495,6 +612,49 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         menuDialog.setContentView(view);
 
         TuffWebView wv = getActiveWebView();
+
+        // Quick Navigation Actions (Back, Forward, Find in Page, Home)
+        ImageButton btnBack = view.findViewById(R.id.menu_quick_back);
+        if (btnBack != null) {
+            boolean canBack = wv != null && wv.canGoBack();
+            btnBack.setEnabled(canBack);
+            btnBack.setAlpha(canBack ? 1.0f : 0.4f);
+            btnBack.setOnClickListener(v -> {
+                if (wv != null && wv.canGoBack()) {
+                    wv.goBack();
+                }
+                menuDialog.dismiss();
+            });
+        }
+
+        ImageButton btnFwd = view.findViewById(R.id.menu_quick_forward);
+        if (btnFwd != null) {
+            boolean canFwd = wv != null && wv.canGoForward();
+            btnFwd.setEnabled(canFwd);
+            btnFwd.setAlpha(canFwd ? 1.0f : 0.4f);
+            btnFwd.setOnClickListener(v -> {
+                if (wv != null && wv.canGoForward()) {
+                    wv.goForward();
+                }
+                menuDialog.dismiss();
+            });
+        }
+
+        View btnFindInPage = view.findViewById(R.id.menu_quick_find_in_page);
+        if (btnFindInPage != null) {
+            btnFindInPage.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                showFindInPage();
+            });
+        }
+
+        View btnHome = view.findViewById(R.id.menu_quick_home);
+        if (btnHome != null) {
+            btnHome.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                navigateHome();
+            });
+        }
 
         // New Tab
         view.findViewById(R.id.menu_item_new_tab).setOnClickListener(v -> {
