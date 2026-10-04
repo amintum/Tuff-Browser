@@ -1,8 +1,13 @@
 package com.tuff.browser;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -64,8 +69,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private EditText etOmniboxTop;
     private EditText etOmniboxBottom;
-    private ImageView btnCornerEngineTop;
-    private ImageView btnCornerEngineBottom;
 
     private View btnTabsTop;
     private View btnTabsBottom;
@@ -96,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         setupListeners();
         setupSystemBars();
         applySearchBarPosition();
-        updateCornerEngineIcons();
+        checkNetworkStatus();
 
         // Check first launch
         if (prefs.isFirstLaunch()) {
@@ -138,8 +141,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         etOmniboxTop = findViewById(R.id.et_omnibox_top);
         etOmniboxBottom = findViewById(R.id.et_omnibox_bottom);
-        btnCornerEngineTop = findViewById(R.id.btn_corner_engine_top);
-        btnCornerEngineBottom = findViewById(R.id.btn_corner_engine_bottom);
 
         btnTabsTop = findViewById(R.id.btn_tabs_top);
         btnTabsBottom = findViewById(R.id.btn_tabs_bottom);
@@ -152,11 +153,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void setupListeners() {
-        // Corner search engine switcher
-        View.OnClickListener cornerSwitchListener = v -> openCornerEngineSwitcher();
-        btnCornerEngineTop.setOnClickListener(cornerSwitchListener);
-        btnCornerEngineBottom.setOnClickListener(cornerSwitchListener);
-
         // Omnibox actions
         setupOmnibox(etOmniboxTop);
         setupOmnibox(etOmniboxBottom);
@@ -316,7 +312,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void showOnboarding() {
         OnboardingDialog dialog = new OnboardingDialog(this, engineManager, prefs, engine -> {
-            updateCornerEngineIcons();
             showPermissionsOnboarding();
         });
         dialog.show();
@@ -361,9 +356,34 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         }
     }
 
+    private void checkNetworkStatus() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            Network active = cm.getActiveNetwork();
+            NetworkCapabilities caps = (active != null) ? cm.getNetworkCapabilities(active) : null;
+            boolean connected = (caps != null) && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+            if (!connected) {
+                View root = findViewById(R.id.root_layout);
+                if (root != null) {
+                    Snackbar snackbar = Snackbar.make(root, "Internet connection is restricted or unavailable.", Snackbar.LENGTH_LONG);
+                    snackbar.setAction("Settings", v -> {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            intent.setData(Uri.parse("package:" + getPackageName()));
+                            startActivity(intent);
+                        } catch (Exception ignored) {
+                            startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
+                        }
+                    });
+                    snackbar.setActionTextColor(ContextCompat.getColor(this, R.color.accent));
+                    snackbar.show();
+                }
+            }
+        }
+    }
+
     private void openCornerEngineSwitcher() {
         CornerEngineSwitcherDialog dialog = new CornerEngineSwitcherDialog(this, engineManager, newEngine -> {
-            updateCornerEngineIcons();
             TuffWebView wv = getActiveWebView();
             if (wv == null) return;
 
@@ -395,12 +415,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             Toast.makeText(this, "Default engine: " + newEngine.getName(), Toast.LENGTH_SHORT).show();
         });
         dialog.show();
-    }
-
-    private void updateCornerEngineIcons() {
-        int iconRes = engineManager.getActiveEngine().getIconRes();
-        btnCornerEngineTop.setImageResource(iconRes);
-        btnCornerEngineBottom.setImageResource(iconRes);
     }
 
     private void setupSystemBars() {
@@ -613,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         TuffWebView wv = getActiveWebView();
 
-        // Quick Navigation Actions (Back, Forward, Find in Page, Home)
+        // Quick Navigation Actions (Back, Forward, Refresh, Find in Page)
         ImageButton btnBack = view.findViewById(R.id.menu_quick_back);
         if (btnBack != null) {
             boolean canBack = wv != null && wv.canGoBack();
@@ -640,19 +654,19 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             });
         }
 
-        View btnFindInPage = view.findViewById(R.id.menu_quick_find_in_page);
+        ImageButton btnRefresh = view.findViewById(R.id.menu_quick_refresh);
+        if (btnRefresh != null) {
+            btnRefresh.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                if (wv != null) wv.reload();
+            });
+        }
+
+        ImageButton btnFindInPage = view.findViewById(R.id.menu_quick_find_in_page);
         if (btnFindInPage != null) {
             btnFindInPage.setOnClickListener(v -> {
                 menuDialog.dismiss();
                 showFindInPage();
-            });
-        }
-
-        View btnHome = view.findViewById(R.id.menu_quick_home);
-        if (btnHome != null) {
-            btnHome.setOnClickListener(v -> {
-                menuDialog.dismiss();
-                navigateHome();
             });
         }
 
@@ -685,6 +699,19 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             applySearchBarPosition();
             menuDialog.dismiss();
         });
+
+        // Search Engine Selection
+        View itemEngine = view.findViewById(R.id.menu_item_search_engine);
+        TextView tvEngine = view.findViewById(R.id.tv_current_engine);
+        if (tvEngine != null) {
+            tvEngine.setText(engineManager.getActiveEngine().getName());
+        }
+        if (itemEngine != null) {
+            itemEngine.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                openCornerEngineSwitcher();
+            });
+        }
 
         // Zoom Controls
         TextView tvZoom = view.findViewById(R.id.tv_zoom_level);

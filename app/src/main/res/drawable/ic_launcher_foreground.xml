@@ -5,14 +5,14 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Globe Outer Ring (Larger radius 38dp) -->
+    <!-- Globe Outer Ring: Crisp White (#FFFFFF) -->
     <path
-        android:strokeColor="#00E5FF"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="2.6"
         android:fillColor="#00000000"
         android:pathData="M16,54a38,38 0 1,0 76,0a38,38 0 1,0 -76,0" />
 
-    <!-- Globe Meridians -->
+    <!-- Globe Meridians: Electric Cyan (#00E5FF) -->
     <path
         android:strokeColor="#00E5FF"
         android:strokeWidth="1.6"
@@ -41,14 +41,9 @@
         android:fillColor="#00000000"
         android:pathData="M21,74a34,9 0 0,1 66,0" />
 
-    <!-- Electric Cyan Banner across Equator (Larger 74x22dp) -->
+    <!-- 't u f f' Typography in Crisp White (#FFFFFF) aligned inside the holes -->
     <path
-        android:fillColor="#00E5FF"
-        android:pathData="M22,43h64a5,5 0 0,1 5,5v12a5,5 0 0,1 -5,5h-64a5,5 0 0,1 -5,-5v-12a5,5 0 0,1 5,-5z" />
-
-    <!-- Bold 'tuff' Typography Cutout (Scaled up) -->
-    <path
-        android:fillColor="#0A1118"
-        android:pathData="M39.48 61.38Q38.76 61.76 37.29 61.76Q33.82 61.76 33.82 58.15V53.28H32.10V50.86H33.82V48.56L37.09 47.63V50.86H39.48V53.28H37.09V57.58Q37.09 59.25 38.41 59.25Q38.93 59.25 39.48 58.94Z M53.64 61.50H50.37V59.88H50.32Q49.10 61.76 47.07 61.76Q43.37 61.76 43.37 57.28V50.86H46.64V56.99Q46.64 59.25 48.43 59.25Q49.31 59.25 49.84 58.63Q50.37 58.01 50.37 56.95V50.86H53.64Z M65.55 48.26Q64.91 48.01 64.33 48.01Q62.75 48.01 62.75 49.73V50.86H65.18V53.28H62.75V61.50H59.48V53.28H57.69V50.86H59.48V49.54Q59.48 47.72 60.66 46.61Q61.85 45.50 63.88 45.50Q64.88 45.50 65.55 45.71Z M75.90 48.26Q75.27 48.01 74.69 48.01Q73.11 48.01 73.11 49.73V50.86H75.54V53.28H73.11V61.50H69.84V53.28H68.05V50.86H69.84V49.54Q69.84 47.72 71.02 46.61Q72.20 45.50 74.24 45.50Q75.24 45.50 75.90 45.71Z" />
+        android:fillColor="#FFFFFF"
+        android:pathData="M29.85 60.05Q29.19 60.40 27.86 60.40Q24.72 60.40 24.72 57.14V52.72H23.15V50.53H24.72V48.44L27.68 47.60V50.53H29.85V52.72H27.68V56.62Q27.68 58.12 28.88 58.12Q29.35 58.12 29.85 57.85Z M50.16 58.70H47.19V57.23H47.14Q46.04 58.94 44.20 58.94Q40.84 58.94 40.84 54.88V49.06H43.81V54.62Q43.81 56.66 45.43 56.66Q46.23 56.66 46.71 56.10Q47.19 55.54 47.19 54.58V49.06H50.16Z M66.06 49.25Q65.48 49.03 64.96 49.03Q63.53 49.03 63.53 50.58V51.61H65.73V53.80H63.53V61.25H60.56V53.80H58.94V51.61H60.56V50.41Q60.56 48.76 61.63 47.76Q62.71 46.75 64.55 46.75Q65.46 46.75 66.06 46.94Z M85.06 49.25Q84.48 49.03 83.96 49.03Q82.53 49.03 82.53 50.58V51.61H84.73V53.80H82.53V61.25H79.56V53.80H77.94V51.61H79.56V50.41Q79.56 48.76 80.63 47.76Q81.71 46.75 83.55 46.75Q84.46 46.75 85.06 46.94Z" />
 
 </vector>

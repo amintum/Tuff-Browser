@@ -25,16 +25,10 @@
         android:padding="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_brave" />
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:text="@string/search_brave"
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
@@ -57,16 +51,10 @@
         android:padding="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_duckduckgo" />
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:text="@string/search_ddg"
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
@@ -89,16 +77,10 @@
         android:padding="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_google" />
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
             <TextView
@@ -135,16 +117,10 @@
         android:padding="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_custom_search" />
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
             <TextView
@@ -170,7 +146,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_custom_search"
+            android:src="@drawable/ic_search"
             android:contentDescription="Edit URL" />
 
         <ImageView

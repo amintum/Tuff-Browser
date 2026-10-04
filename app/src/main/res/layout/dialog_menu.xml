@@ -7,7 +7,7 @@
     android:padding="16dp"
     android:background="@color/surface_card">
 
-    <!-- TOP QUICK ACTIONS ROW (Back, Forward, Find on page, Home) -->
+    <!-- TOP QUICK ACTIONS ROW (Back, Forward, Refresh, Find on page) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="48dp"
@@ -35,6 +35,15 @@
             android:src="@drawable/ic_arrow_forward" />
 
         <ImageButton
+            android:id="@+id/menu_quick_refresh"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Refresh"
+            android:src="@drawable/ic_refresh" />
+
+        <ImageButton
             android:id="@+id/menu_quick_find_in_page"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -42,15 +51,6 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Search in page"
             android:src="@drawable/ic_search" />
-
-        <ImageButton
-            android:id="@+id/menu_quick_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Home"
-            android:src="@drawable/ic_home" />
 
     </LinearLayout>
 
@@ -152,6 +152,46 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/position_bottom"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Search Engine -->
+    <LinearLayout
+        android:id="@+id/menu_item_search_engine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:tint="@color/icon_tint"
+            android:src="@drawable/ic_custom_search" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search Engine"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tv_current_engine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brave Search"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
