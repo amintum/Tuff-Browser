@@ -31,8 +31,12 @@ import com.tuff.browser.download.DownloadManagerSheet;
 import com.tuff.browser.download.DownloadService;
 import com.tuff.browser.search.CornerEngineSwitcherDialog;
 import com.tuff.browser.search.OnboardingDialog;
+import com.tuff.browser.search.PermissionsOnboardingDialog;
 import com.tuff.browser.search.SearchEngine;
 import com.tuff.browser.search.SearchEngineManager;
+
+import java.util.ArrayList;
+import java.util.List;
 import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
@@ -182,12 +186,53 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         handleBack();
     }
 
+    private static final int REQUEST_CODE_ESSENTIAL_PERMISSIONS = 102;
+
     private void showOnboarding() {
         OnboardingDialog dialog = new OnboardingDialog(this, engineManager, prefs, engine -> {
             updateCornerEngineIcons();
-            navigateHome();
+            showPermissionsOnboarding();
         });
         dialog.show();
+    }
+
+    private void showPermissionsOnboarding() {
+        PermissionsOnboardingDialog dialog = new PermissionsOnboardingDialog(this, new PermissionsOnboardingDialog.OnPermissionRequestListener() {
+            @Override
+            public void onRequestPermissions() {
+                requestEssentialPermissions();
+                navigateHome();
+            }
+
+            @Override
+            public void onDismissed() {
+                navigateHome();
+            }
+        });
+        dialog.show();
+    }
+
+    private void requestEssentialPermissions() {
+        List<String> perms = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                perms.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                perms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (!perms.isEmpty()) {
+            ActivityCompat.requestPermissions(this, perms.toArray(new String[0]), REQUEST_CODE_ESSENTIAL_PERMISSIONS);
+        }
     }
 
     private void openCornerEngineSwitcher() {

@@ -13,6 +13,14 @@ import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
 
+import android.content.ContentValues;
+import android.media.MediaScannerConnection;
+import android.provider.MediaStore;
+import android.webkit.MimeTypeMap;
+
+import java.io.FileInputStream;
+import java.io.OutputStream;
+
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -321,6 +329,11 @@ public class DownloadService extends Service {
                 }
 
                 out.flush();
+                try { out.close(); } catch (Exception ignored) {}
+                out = null;
+
+                exportToPublicDownloads(task);
+
                 task.setStatus(DownloadTask.Status.COMPLETED);
                 task.setSpeedBytesPerSec(0);
                 DownloadRepository.getInstance().notifyStatusChanged(task);
@@ -459,6 +472,71 @@ public class DownloadService extends Service {
                 .build();
 
         NotificationManagerCompat.from(this).notify(getNotificationId(task.getId()), notification);
+    }
+
+    private void exportToPublicDownloads(DownloadTask task) {
+        File source = task.getDestinationFile();
+        if (source == null || !source.exists() || source.length() == 0) return;
+
+        // 1. On Android 10+ (API 29+), insert into MediaStore.Downloads
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Downloads.DISPLAY_NAME, task.getFilename());
+                String mime = task.getMimeType();
+                if (mime == null || mime.isEmpty()) {
+                    mime = URLUtil.guessFileName(task.getUrl(), task.getContentDisposition(), null);
+                    String ext = MimeTypeMap.getFileExtensionFromUrl(mime);
+                    mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+                }
+                if (mime == null) mime = "application/octet-stream";
+                values.put(MediaStore.Downloads.MIME_TYPE, mime);
+                values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                values.put(MediaStore.Downloads.IS_PENDING, 1);
+
+                Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                Uri itemUri = getContentResolver().insert(collection, values);
+
+                if (itemUri != null) {
+                    try (OutputStream os = getContentResolver().openOutputStream(itemUri);
+                         InputStream is = new FileInputStream(source)) {
+                        byte[] buffer = new byte[32768];
+                        int len;
+                        while ((len = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, len);
+                        }
+                        os.flush();
+                    }
+                    values.clear();
+                    values.put(MediaStore.Downloads.IS_PENDING, 0);
+                    getContentResolver().update(itemUri, values, null, null);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "MediaStore export error: " + e.getMessage(), e);
+            }
+        }
+
+        // 2. Also copy to public Downloads directory (for direct file path access & older Android)
+        try {
+            File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (!publicDir.exists()) publicDir.mkdirs();
+            File publicFile = new File(publicDir, task.getFilename());
+            if (!publicFile.equals(source)) {
+                try (InputStream is = new FileInputStream(source);
+                     OutputStream os = new FileOutputStream(publicFile)) {
+                    byte[] buffer = new byte[32768];
+                    int len;
+                    while ((len = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, len);
+                    }
+                    os.flush();
+                }
+                task.setDestinationFile(publicFile);
+            }
+            MediaScannerConnection.scanFile(this, new String[]{publicFile.getAbsolutePath()}, new String[]{task.getMimeType()}, null);
+        } catch (Exception e) {
+            Log.e(TAG, "Direct public file copy error: " + e.getMessage(), e);
+        }
     }
 
     private int getNotificationId(String taskId) {
