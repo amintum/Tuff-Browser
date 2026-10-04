@@ -15,9 +15,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.tuff.browser.download.DownloadManagerSheet;
 import com.tuff.browser.download.DownloadService;
@@ -313,9 +321,50 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         // Built-in Downloader listener
         wv.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-            Toast.makeText(MainActivity.this, getString(R.string.downloading), Toast.LENGTH_SHORT).show();
-            DownloadService.enqueue(MainActivity.this, url, userAgent, contentDisposition, mimetype);
+            startDownloadWithPermissionCheck(url, userAgent, contentDisposition, mimetype);
         });
+    }
+
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 101;
+    private String[] pendingDownloadArgs = null;
+
+    private void startDownloadWithPermissionCheck(String url, String userAgent, String contentDisposition, String mimeType) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                pendingDownloadArgs = new String[]{url, userAgent, contentDisposition, mimeType};
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
+                return;
+            }
+        }
+        enqueueDownloadWithFeedback(url, userAgent, contentDisposition, mimeType);
+    }
+
+    private void enqueueDownloadWithFeedback(String url, String userAgent, String contentDisposition, String mimeType) {
+        DownloadService.enqueue(MainActivity.this, url, userAgent, contentDisposition, mimeType);
+        showDownloadStartedSnackbar();
+    }
+
+    private void showDownloadStartedSnackbar() {
+        View root = findViewById(R.id.root_layout);
+        if (root != null) {
+            Snackbar snackbar = Snackbar.make(root, R.string.download_started, Snackbar.LENGTH_LONG);
+            snackbar.setAction(R.string.see_details, v -> {
+                new DownloadManagerSheet(MainActivity.this).show();
+            });
+            snackbar.setActionTextColor(ContextCompat.getColor(MainActivity.this, R.color.accent));
+            snackbar.show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
+            if (pendingDownloadArgs != null) {
+                enqueueDownloadWithFeedback(pendingDownloadArgs[0], pendingDownloadArgs[1], pendingDownloadArgs[2], pendingDownloadArgs[3]);
+                pendingDownloadArgs = null;
+            }
+        }
     }
 
     private void updateOmniboxText(String url) {

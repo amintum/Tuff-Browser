@@ -23,6 +23,8 @@
 
     <!-- Downloads -->
     <string name="downloads_title">Downloads</string>
+    <string name="download_started">Download started</string>
+    <string name="see_details">See details</string>
     <string name="downloading">Downloading…</string>
     <string name="download_completed">Download completed</string>
     <string name="download_failed">Download failed</string>
