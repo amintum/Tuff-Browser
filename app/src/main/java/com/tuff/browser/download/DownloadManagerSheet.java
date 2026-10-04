@@ -136,7 +136,8 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
                 holder.tvInfo.setText(task.getFormattedProgress());
                 holder.btnPauseResume.setVisibility(View.VISIBLE);
                 holder.btnPauseResume.setImageResource(R.drawable.ic_play);
-                holder.btnCancel.setImageResource(R.drawable.ic_close);
+                holder.btnCancel.setImageResource(R.drawable.ic_delete);
+                holder.btnCancel.setContentDescription(getContext().getString(R.string.delete));
 
             } else { // DOWNLOADING or PENDING
                 holder.progressBar.setVisibility(View.VISIBLE);
@@ -162,17 +163,9 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
             // Cancel / Delete action
             holder.btnCancel.setOnClickListener(v -> {
                 Context context = getContext();
-                if (task.getStatus() == DownloadTask.Status.COMPLETED) {
-                    File file = task.getDestinationFile();
-                    if (file != null && file.exists()) {
-                        file.delete();
-                    }
-                    repository.removeTask(task.getId());
-                    updateData(repository.getTasks());
-                    updateEmptyState();
-                } else {
-                    DownloadService.cancel(context, task.getId());
-                }
+                FileUtils.deleteDownloadedTask(context, task);
+                updateData(repository.getTasks());
+                updateEmptyState();
             });
 
             // Open completed download

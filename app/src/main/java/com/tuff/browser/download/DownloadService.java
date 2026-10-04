@@ -216,6 +216,14 @@ public class DownloadService extends Service {
             file.delete();
         }
 
+        try {
+            File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (publicDir != null) {
+                File pubFile = new File(publicDir, task.getFilename());
+                if (pubFile.exists()) pubFile.delete();
+            }
+        } catch (Exception ignored) {}
+
         task.setStatus(DownloadTask.Status.CANCELLED);
         task.setSpeedBytesPerSec(0);
         DownloadRepository.getInstance().removeTask(taskId);

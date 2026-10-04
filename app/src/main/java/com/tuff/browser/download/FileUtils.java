@@ -8,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
@@ -190,6 +192,45 @@ public class FileUtils {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    public static void deleteDownloadedTask(Context context, DownloadTask task) {
+        if (task == null) return;
+
+        // 1. If actively downloading/running, cancel through service
+        try {
+            DownloadService.cancel(context, task.getId());
+        } catch (Exception ignored) {}
+
+        // 2. Delete internal private file
+        File internal = task.getDestinationFile();
+        if (internal != null && internal.exists()) {
+            internal.delete();
+        }
+
+        // 3. Delete from public Downloads directory
+        try {
+            File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (publicDir != null) {
+                File pubFile = new File(publicDir, task.getFilename());
+                if (pubFile.exists()) {
+                    pubFile.delete();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 4. On Android 10+ (API 29+), delete MediaStore.Downloads record
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && context != null) {
+            try {
+                Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                String selection = MediaStore.Downloads.DISPLAY_NAME + "=?";
+                String[] selectionArgs = new String[]{task.getFilename()};
+                context.getContentResolver().delete(collection, selection, selectionArgs);
+            } catch (Exception ignored) {}
+        }
+
+        // 5. Remove task from repository
+        DownloadRepository.getInstance().removeTask(task.getId());
     }
 
     private static void grantUriPermissions(Context context, Intent intent, Uri uri) {
