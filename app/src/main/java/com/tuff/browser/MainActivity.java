@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         initViews();
         setupListeners();
+        setupSystemBars();
         applySearchBarPosition();
         updateCornerEngineIcons();
 
@@ -290,14 +291,43 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         btnCornerEngineBottom.setImageResource(iconRes);
     }
 
+    private void setupSystemBars() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.surface_card));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decor = getWindow().getDecorView();
+            int flags = decor.getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            }
+            decor.setSystemUiVisibility(flags);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(0,
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            }
+        }
+    }
+
     private void applySearchBarPosition() {
         boolean isTop = Prefs.POSITION_TOP.equals(prefs.getSearchBarPosition());
         if (isTop) {
             containerTopBar.setVisibility(View.VISIBLE);
             layoutBottomOmnibar.setVisibility(View.GONE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.surface_card));
+            }
         } else {
             containerTopBar.setVisibility(View.GONE);
             layoutBottomOmnibar.setVisibility(View.VISIBLE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.primary_dark));
+            }
         }
     }
 

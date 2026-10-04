@@ -65,6 +65,7 @@
         android:layout_height="36dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Pause or Resume"
+        app:tint="@color/icon_tint"
         android:src="@drawable/ic_pause" />
 
     <!-- Cancel / Delete Button -->
@@ -74,6 +75,7 @@
         android:layout_height="36dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Cancel or Delete"
+        app:tint="@color/icon_tint"
         android:src="@drawable/ic_close" />
 
 </LinearLayout>

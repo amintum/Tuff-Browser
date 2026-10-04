@@ -49,6 +49,19 @@ public class TuffWebView extends WebView {
         setFocusable(true);
         setFocusableInTouchMode(true);
 
+        // Dark mode defaults
+        setBackgroundColor(0xFF121212);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                settings.setForceDark(WebSettings.FORCE_DARK_ON);
+            } catch (Throwable ignored) {}
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                settings.setAlgorithmicDarkeningAllowed(true);
+            } catch (Throwable ignored) {}
+        }
+
         // Mixed content
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);

@@ -7,6 +7,7 @@
     android:layout_marginVertical="6dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/surface_card"
     app:strokeColor="@color/divider"
     app:strokeWidth="1dp">
 
@@ -53,6 +54,7 @@
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Close tab"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_close" />
 
     </LinearLayout>

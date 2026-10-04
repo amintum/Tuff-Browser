@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@color/surface_card">
 
     <!-- New Tab -->
     <LinearLayout
@@ -20,6 +20,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_add" />
 
         <TextView
@@ -45,6 +46,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_desktop" />
 
         <TextView
@@ -75,6 +77,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_search" />
 
         <LinearLayout
@@ -122,6 +125,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_remove"
             android:contentDescription="Zoom Out" />
 
@@ -140,6 +144,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_add"
             android:contentDescription="Zoom In" />
     </LinearLayout>
@@ -157,6 +162,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
+            app:tint="@color/icon_tint"
             android:src="@drawable/ic_download" />
 
         <TextView
