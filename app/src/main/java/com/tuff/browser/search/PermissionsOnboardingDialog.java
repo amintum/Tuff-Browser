@@ -31,6 +31,9 @@ public class PermissionsOnboardingDialog extends BottomSheetDialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_permissions_onboarding);
 
+        getBehavior().setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+        getBehavior().setSkipCollapsed(true);
+
         MaterialButton btnGrant = findViewById(R.id.btn_grant_permissions);
         TextView btnSkip = findViewById(R.id.btn_skip_permissions);
 

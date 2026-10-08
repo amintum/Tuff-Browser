@@ -4,16 +4,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="12dp"
     android:background="@color/surface_card">
 
-    <!-- TOP QUICK ACTIONS ROW (Back, Forward, Refresh, Find on page) -->
+    <!-- TOP QUICK ACTIONS ROW (Fitted across full width, no scroll) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="4dp"
         android:layout_marginBottom="6dp">
 
         <ImageButton
@@ -21,6 +23,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_arrow_back" />
@@ -30,15 +34,74 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Forward"
             android:src="@drawable/ic_arrow_forward" />
+
+        <ImageButton
+            android:id="@+id/menu_quick_zoom_out"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Zoom Out"
+            android:src="@drawable/ic_remove" />
+
+        <ImageButton
+            android:id="@+id/menu_quick_zoom_in"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Zoom In"
+            android:src="@drawable/ic_add" />
+
+        <ImageButton
+            android:id="@+id/menu_quick_desktop"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Desktop Site"
+            android:src="@drawable/ic_desktop" />
+
+        <ImageButton
+            android:id="@+id/menu_quick_download_page"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Download page"
+            android:src="@drawable/ic_download" />
+
+        <ImageButton
+            android:id="@+id/menu_quick_fire"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Clear all data"
+            android:src="@drawable/ic_fire" />
 
         <ImageButton
             android:id="@+id/menu_quick_refresh"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Refresh"
             android:src="@drawable/ic_refresh" />
@@ -48,6 +111,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:padding="8dp"
+            android:scaleType="centerInside"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Search in page"
             android:src="@drawable/ic_search" />
@@ -58,103 +123,34 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/divider"
-        android:layout_marginBottom="6dp" />
-
-    <!-- New Tab -->
-    <LinearLayout
-        android:id="@+id/menu_item_new_tab"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:background="?attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_add" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/menu_new_tab"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp" />
-    </LinearLayout>
-
-    <!-- Desktop Site Toggle -->
-    <LinearLayout
-        android:id="@+id/menu_item_desktop"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:background="?attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_desktop" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/menu_desktop_mode"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switch_desktop_mode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+        android:layout_marginBottom="4dp" />
 
     <!-- Search Bar Position (Top / Bottom) -->
     <LinearLayout
         android:id="@+id/menu_item_position"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_search" />
-
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
+            android:text="@string/menu_search_position"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/menu_search_position"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/tv_current_position"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/position_bottom"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_current_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/position_bottom"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
     </LinearLayout>
 
     <!-- Search Engine -->
@@ -162,84 +158,48 @@
         android:id="@+id/menu_item_search_engine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp"
         android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_custom_search" />
-
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
+            android:text="Search Engine"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Search Engine"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/tv_current_engine"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Brave Search"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_current_engine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Brave Search"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- Zoom Controls -->
+    <!-- History -->
     <LinearLayout
+        android:id="@+id/menu_item_history"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp"
+        android:background="?attr/selectableItemBackground">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/menu_zoom"
+            android:text="History"
             android:textColor="@color/text_primary"
             android:textSize="15sp" />
-
-        <ImageButton
-            android:id="@+id/btn_zoom_out"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_remove"
-            android:contentDescription="Zoom Out" />
-
-        <TextView
-            android:id="@+id/tv_zoom_level"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="100%"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/btn_zoom_in"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_add"
-            android:contentDescription="Zoom In" />
     </LinearLayout>
 
     <!-- Downloads Manager -->
@@ -249,21 +209,37 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp"
         android:background="?attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            app:tint="@color/icon_tint"
-            android:src="@drawable/ic_download" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:text="@string/menu_downloads"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- About -->
+    <LinearLayout
+        android:id="@+id/menu_item_about"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="About"
             android:textColor="@color/text_primary"
             android:textSize="15sp" />
     </LinearLayout>

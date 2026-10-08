@@ -33,8 +33,19 @@ public class TuffWebClient extends WebViewClient {
     }
 
     @Override
+    public void onPageCommitVisible(WebView view, String url) {
+        super.onPageCommitVisible(view, url);
+        if (view instanceof TuffWebView) {
+            ((TuffWebView) view).applyDesktopViewport();
+        }
+    }
+
+    @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        if (view instanceof TuffWebView) {
+            ((TuffWebView) view).applyDesktopViewport();
+        }
         if (callback != null) {
             callback.onPageFinished(url);
             callback.onTitleUpdated(view.getTitle());

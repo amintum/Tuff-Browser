@@ -19,6 +19,11 @@ public class TuffChromeClient extends WebChromeClient {
     @Override
     public void onProgressChanged(WebView view, int newProgress) {
         super.onProgressChanged(view, newProgress);
+        if (view instanceof TuffWebView && ((TuffWebView) view).isDesktopMode()) {
+            if (newProgress >= 15 && newProgress <= 60) {
+                ((TuffWebView) view).applyDesktopViewport();
+            }
+        }
         if (callback != null) {
             callback.onProgressChanged(newProgress);
         }

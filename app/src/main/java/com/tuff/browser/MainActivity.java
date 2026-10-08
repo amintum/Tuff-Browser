@@ -31,6 +31,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -38,14 +40,21 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.tuff.browser.download.DownloadManagerSheet;
 import com.tuff.browser.download.DownloadService;
+import com.tuff.browser.download.FileUtils;
 import com.tuff.browser.search.CornerEngineSwitcherDialog;
 import com.tuff.browser.search.OnboardingDialog;
 import com.tuff.browser.search.PermissionsOnboardingDialog;
 import com.tuff.browser.search.SearchEngine;
 import com.tuff.browser.search.SearchEngineManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import android.app.Dialog;
+import android.view.Window;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.view.ViewGroup;
 import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
@@ -64,18 +73,13 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private LinearLayout containerTopBar;
-    private LinearLayout containerBottomBar;
-
-    private EditText etOmniboxTop;
-    private EditText etOmniboxBottom;
-
-    private View btnTabsTop;
-    private View btnTabsBottom;
-    private TextView tvTabsCountTop;
-    private TextView tvTabsCountBottom;
-    private View btnMenuTop;
-    private View btnMenuBottom;
+    private LinearLayout rootLayout;
+    private LinearLayout containerOmnibar;
+    private View omnibarDivider;
+    private EditText etOmnibox;
+    private View btnTabs;
+    private TextView tvTabsCount;
+    private View btnMenu;
 
     // In-page search bar
     private LinearLayout containerFindInPage;
@@ -101,18 +105,17 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         applySearchBarPosition();
         checkNetworkStatus();
 
-        // Check first launch
-        if (prefs.isFirstLaunch()) {
-            showOnboarding();
-        }
-
-        // Initialize first tab
-        String startUrl = "https://search.brave.com";
         Intent intent = getIntent();
+        String startUrl = engineManager.getHomeUrl();
         if (intent != null && intent.getData() != null) {
             startUrl = intent.getData().toString();
         }
         tabManager.createTab(startUrl);
+
+        // Check first launch
+        if (prefs.isFirstLaunch()) {
+            showOnboarding();
+        }
 
         if (intent != null && intent.getBooleanExtra("open_downloads", false)) {
             new DownloadManagerSheet(this).show();
@@ -128,6 +131,27 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (FileUtils.pendingInstallApk != null) {
+            File apk = FileUtils.pendingInstallApk;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
+                FileUtils.pendingInstallApk = null;
+                if (apk.exists()) {
+                    FileUtils.openDownloadedFile(this, apk, "application/vnd.android.package-archive");
+                }
+            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                FileUtils.pendingInstallApk = null;
+                if (apk.exists()) {
+                    FileUtils.openDownloadedFile(this, apk, "application/vnd.android.package-archive");
+                }
+            } else {
+                FileUtils.pendingInstallApk = null;
+            }
+        }
+    }
+
     private void initViews() {
         webViewContainer = findViewById(R.id.webview_container);
         progressBar = findViewById(R.id.progress_loading);
@@ -136,36 +160,21 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         swipeRefreshLayout.setColorSchemeColors(ContextCompat.getColor(this, R.color.accent));
         swipeRefreshLayout.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.surface_card));
 
-        containerTopBar = findViewById(R.id.container_top_bar);
-        containerBottomBar = findViewById(R.id.container_bottom_bar);
-
-        etOmniboxTop = findViewById(R.id.et_omnibox_top);
-        etOmniboxBottom = findViewById(R.id.et_omnibox_bottom);
-
-        btnTabsTop = findViewById(R.id.btn_tabs_top);
-        btnTabsBottom = findViewById(R.id.btn_tabs_bottom);
-        tvTabsCountTop = findViewById(R.id.tv_tabs_count_top);
-        tvTabsCountBottom = findViewById(R.id.tv_tabs_count_bottom);
-        btnMenuTop = findViewById(R.id.btn_menu_top);
-        btnMenuBottom = findViewById(R.id.btn_menu_bottom);
+        rootLayout = findViewById(R.id.root_layout);
+        containerOmnibar = findViewById(R.id.container_omnibar);
+        omnibarDivider = findViewById(R.id.omnibar_divider);
+        etOmnibox = findViewById(R.id.et_omnibox);
+        btnTabs = findViewById(R.id.btn_tabs);
+        tvTabsCount = findViewById(R.id.tv_tabs_count);
+        btnMenu = findViewById(R.id.btn_menu);
 
         initFindInPage();
     }
 
     private void setupListeners() {
-        // Omnibox actions
-        setupOmnibox(etOmniboxTop);
-        setupOmnibox(etOmniboxBottom);
-
-        // Tab sheet action
-        View.OnClickListener tabsListener = v -> openTabSheet();
-        btnTabsTop.setOnClickListener(tabsListener);
-        btnTabsBottom.setOnClickListener(tabsListener);
-
-        // Menu sheet action
-        View.OnClickListener menuListener = v -> openMenuSheet();
-        btnMenuTop.setOnClickListener(menuListener);
-        btnMenuBottom.setOnClickListener(menuListener);
+        setupOmnibox(etOmnibox);
+        btnTabs.setOnClickListener(v -> openTabSheet());
+        btnMenu.setOnClickListener(v -> openMenuSheet());
 
         // Swipe-down-to-refresh with circular indicator
         swipeRefreshLayout.setOnRefreshListener(() -> {
@@ -220,8 +229,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void showFindInPage() {
-        containerTopBar.setVisibility(View.GONE);
-        containerBottomBar.setVisibility(View.GONE);
+        containerOmnibar.setVisibility(View.GONE);
         containerFindInPage.setVisibility(View.VISIBLE);
 
         etFindInPage.requestFocus();
@@ -246,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void hideFindInPage() {
         containerFindInPage.setVisibility(View.GONE);
+        containerOmnibar.setVisibility(View.VISIBLE);
         hideKeyboard(etFindInPage);
         etFindInPage.setText("");
         tvFindMatchCount.setVisibility(View.GONE);
@@ -253,10 +262,16 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         if (wv != null) {
             wv.clearMatches();
         }
-        applySearchBarPosition();
     }
 
     private void setupOmnibox(EditText et) {
+        et.setSelectAllOnFocus(true);
+        et.setOnClickListener(v -> et.post(et::selectAll));
+        et.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                et.post(et::selectAll);
+            }
+        });
         et.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                 String input = et.getText().toString();
@@ -418,47 +433,30 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void setupSystemBars() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.surface_card));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            View decor = getWindow().getDecorView();
-            int flags = decor.getSystemUiVisibility();
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-            }
-            decor.setSystemUiVisibility(flags);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            android.view.WindowInsetsController controller = getWindow().getInsetsController();
-            if (controller != null) {
-                controller.setSystemBarsAppearance(0,
-                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                                | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
-            }
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.surface_card));
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (controller != null) {
+            controller.setAppearanceLightStatusBars(false);
+            controller.setAppearanceLightNavigationBars(false);
         }
     }
 
     private void applySearchBarPosition() {
         boolean isTop = Prefs.POSITION_TOP.equals(prefs.getSearchBarPosition());
+        rootLayout.removeView(containerOmnibar);
         if (isTop) {
-            containerTopBar.setVisibility(View.VISIBLE);
-            containerBottomBar.setVisibility(View.GONE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.surface_card));
-            }
+            rootLayout.addView(containerOmnibar, 0);
+            if (omnibarDivider != null) omnibarDivider.setVisibility(View.GONE);
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.surface_card));
         } else {
-            containerTopBar.setVisibility(View.GONE);
-            containerBottomBar.setVisibility(View.VISIBLE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.primary_dark));
-            }
+            rootLayout.addView(containerOmnibar);
+            if (omnibarDivider != null) omnibarDivider.setVisibility(View.VISIBLE);
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.primary_dark));
         }
     }
 
     private EditText getActiveOmnibox() {
-        return Prefs.POSITION_TOP.equals(prefs.getSearchBarPosition()) ? etOmniboxTop : etOmniboxBottom;
+        return etOmnibox;
     }
 
     private TuffWebView getActiveWebView() {
@@ -489,9 +487,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     @Override
     public void onTabCountChanged(int count) {
-        String countStr = String.valueOf(count);
-        if (tvTabsCountTop != null) tvTabsCountTop.setText(countStr);
-        if (tvTabsCountBottom != null) tvTabsCountBottom.setText(countStr);
+        if (tvTabsCount != null) tvTabsCount.setText(String.valueOf(count));
     }
 
     private void attachWebViewCallbacks(TabModel tab) {
@@ -507,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
             @Override
             public void onPageFinished(String url) {
-                progressBar.setVisibility(View.GONE);
+                progressBar.setVisibility(View.INVISIBLE);
                 if (swipeRefreshLayout != null) {
                     swipeRefreshLayout.setRefreshing(false);
                 }
@@ -526,7 +522,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             public void onProgressChanged(int progress) {
                 progressBar.setProgress(progress);
                 if (progress >= 100) {
-                    progressBar.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.INVISIBLE);
                 } else {
                     progressBar.setVisibility(View.VISIBLE);
                 }
@@ -587,13 +583,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void updateOmniboxText(String url) {
-        if (url == null || "about:blank".equals(url)) {
-            etOmniboxTop.setText("");
-            etOmniboxBottom.setText("");
-            return;
+        if (etOmnibox != null) {
+            etOmnibox.setText((url == null || "about:blank".equals(url)) ? "" : url);
         }
-        etOmniboxTop.setText(url);
-        etOmniboxBottom.setText(url);
     }
 
     private void openTabSheet() {
@@ -627,7 +619,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         TuffWebView wv = getActiveWebView();
 
-        // Quick Navigation Actions (Back, Forward, Refresh, Find in Page)
+        // Quick Navigation Actions in Top Bar
         ImageButton btnBack = view.findViewById(R.id.menu_quick_back);
         if (btnBack != null) {
             boolean canBack = wv != null && wv.canGoBack();
@@ -654,6 +646,52 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             });
         }
 
+        ImageButton btnZoomOut = view.findViewById(R.id.menu_quick_zoom_out);
+        if (btnZoomOut != null) {
+            btnZoomOut.setOnClickListener(v -> {
+                if (wv != null) {
+                    wv.zoomOutText();
+                    showZoomToast(wv.getTextZoomLevel());
+                }
+            });
+        }
+
+        ImageButton btnZoomIn = view.findViewById(R.id.menu_quick_zoom_in);
+        if (btnZoomIn != null) {
+            btnZoomIn.setOnClickListener(v -> {
+                if (wv != null) {
+                    wv.zoomInText();
+                    showZoomToast(wv.getTextZoomLevel());
+                }
+            });
+        }
+
+        ImageButton btnDesktop = view.findViewById(R.id.menu_quick_desktop);
+        if (btnDesktop != null && wv != null) {
+            updateDesktopHighlight(btnDesktop, wv.isDesktopMode());
+            btnDesktop.setOnClickListener(v -> {
+                boolean newState = !wv.isDesktopMode();
+                wv.setDesktopMode(newState);
+                updateDesktopHighlight(btnDesktop, newState);
+            });
+        }
+
+        ImageButton btnDownloadPage = view.findViewById(R.id.menu_quick_download_page);
+        if (btnDownloadPage != null) {
+            btnDownloadPage.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                downloadCurrentPage();
+            });
+        }
+
+        ImageButton btnFire = view.findViewById(R.id.menu_quick_fire);
+        if (btnFire != null) {
+            btnFire.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                showClearDataDialog();
+            });
+        }
+
         ImageButton btnRefresh = view.findViewById(R.id.menu_quick_refresh);
         if (btnRefresh != null) {
             btnRefresh.setOnClickListener(v -> {
@@ -667,23 +705,6 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             btnFindInPage.setOnClickListener(v -> {
                 menuDialog.dismiss();
                 showFindInPage();
-            });
-        }
-
-        // New Tab
-        view.findViewById(R.id.menu_item_new_tab).setOnClickListener(v -> {
-            menuDialog.dismiss();
-            tabManager.createTab("about:blank");
-            navigateHome();
-        });
-
-        // Desktop Mode
-        SwitchMaterial switchDesktop = view.findViewById(R.id.switch_desktop_mode);
-        if (switchDesktop != null && wv != null) {
-            switchDesktop.setChecked(wv.isDesktopMode());
-            switchDesktop.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                wv.setDesktopMode(isChecked);
-                menuDialog.dismiss();
             });
         }
 
@@ -713,23 +734,14 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             });
         }
 
-        // Zoom Controls
-        TextView tvZoom = view.findViewById(R.id.tv_zoom_level);
-        if (tvZoom != null && wv != null) {
-            tvZoom.setText(wv.getTextZoomLevel() + "%");
+        // History
+        View itemHistory = view.findViewById(R.id.menu_item_history);
+        if (itemHistory != null) {
+            itemHistory.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                showHistoryDialog();
+            });
         }
-        view.findViewById(R.id.btn_zoom_in).setOnClickListener(v -> {
-            if (wv != null) {
-                wv.zoomInText();
-                if (tvZoom != null) tvZoom.setText(wv.getTextZoomLevel() + "%");
-            }
-        });
-        view.findViewById(R.id.btn_zoom_out).setOnClickListener(v -> {
-            if (wv != null) {
-                wv.zoomOutText();
-                if (tvZoom != null) tvZoom.setText(wv.getTextZoomLevel() + "%");
-            }
-        });
 
         // Downloads
         view.findViewById(R.id.menu_item_downloads).setOnClickListener(v -> {
@@ -737,13 +749,224 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             new DownloadManagerSheet(MainActivity.this).show();
         });
 
+        // About
+        View itemAbout = view.findViewById(R.id.menu_item_about);
+        if (itemAbout != null) {
+            itemAbout.setOnClickListener(v -> {
+                menuDialog.dismiss();
+                showAboutDialog();
+            });
+        }
+
         menuDialog.show();
+    }
+
+    private void showAboutDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_about);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        View btnDev = dialog.findViewById(R.id.btn_about_dev);
+        if (btnDev != null) {
+            btnDev.setOnClickListener(v -> {
+                dialog.dismiss();
+                loadQueryOrUrl("https://github.com/amintum");
+            });
+        }
+
+        View btnRepo = dialog.findViewById(R.id.btn_about_repo);
+        if (btnRepo != null) {
+            btnRepo.setOnClickListener(v -> {
+                dialog.dismiss();
+                loadQueryOrUrl("https://github.com/amintum/Tuff-Browser");
+            });
+        }
+
+        View btnClose = dialog.findViewById(R.id.btn_about_close);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private Toast currentZoomToast;
+
+    private void showZoomToast(int zoomLevel) {
+        if (currentZoomToast != null) {
+            currentZoomToast.cancel();
+        }
+        currentZoomToast = Toast.makeText(this, zoomLevel + "% zoom", Toast.LENGTH_SHORT);
+        currentZoomToast.show();
+    }
+
+    private void updateDesktopHighlight(ImageButton btn, boolean isDesktop) {
+        if (btn == null) return;
+        if (isDesktop) {
+            btn.setBackgroundResource(R.drawable.bg_active_pill);
+            btn.setColorFilter(0xFF4DA3FF);
+        } else {
+            btn.setBackgroundResource(android.R.color.transparent);
+            btn.setColorFilter(0xFFB0B0B0);
+        }
+    }
+
+    private void downloadCurrentPage() {
+        TuffWebView wv = getActiveWebView();
+        if (wv != null) {
+            String currentUrl = wv.getUrl();
+            if (currentUrl != null && !currentUrl.isEmpty() && !"about:blank".equals(currentUrl)) {
+                String title = wv.getTitle();
+                if (title == null || title.trim().isEmpty()) title = "webpage";
+                String safeName = title.replaceAll("[^a-zA-Z0-9_.-]", "_");
+                if (!safeName.endsWith(".html") && !safeName.endsWith(".htm")) safeName += ".html";
+                startDownloadWithPermissionCheck(currentUrl, wv.getSettings().getUserAgentString(), "attachment; filename=\"" + safeName + "\"", "text/html");
+            } else {
+                Toast.makeText(this, "No page to download", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void showHistoryDialog() {
+        TuffWebView wv = getActiveWebView();
+        if (wv == null) return;
+
+        BottomSheetDialog historyDialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_history, null);
+        historyDialog.setContentView(view);
+
+        android.webkit.WebBackForwardList historyList = wv.copyBackForwardList();
+        int count = historyList != null ? historyList.getSize() : 0;
+
+        TextView tvNoHistory = view.findViewById(R.id.tv_no_history);
+        androidx.recyclerview.widget.RecyclerView rvHistory = view.findViewById(R.id.rv_history);
+        View btnClear = view.findViewById(R.id.btn_clear_history);
+
+        if (count == 0) {
+            tvNoHistory.setVisibility(View.VISIBLE);
+            rvHistory.setVisibility(View.GONE);
+        } else {
+            tvNoHistory.setVisibility(View.GONE);
+            rvHistory.setVisibility(View.VISIBLE);
+            rvHistory.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+
+            List<android.webkit.WebHistoryItem> items = new ArrayList<>();
+            for (int i = count - 1; i >= 0; i--) {
+                android.webkit.WebHistoryItem item = historyList.getItemAtIndex(i);
+                if (item != null && item.getUrl() != null && !item.getUrl().isEmpty()) {
+                    items.add(item);
+                }
+            }
+
+            rvHistory.setAdapter(new androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
+                @NonNull
+                @Override
+                public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup parent, int viewType) {
+                    View itemV = getLayoutInflater().inflate(R.layout.item_history, parent, false);
+                    return new androidx.recyclerview.widget.RecyclerView.ViewHolder(itemV) {};
+                }
+
+                @Override
+                public void onBindViewHolder(@NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
+                    android.webkit.WebHistoryItem item = items.get(position);
+                    TextView title = holder.itemView.findViewById(R.id.tv_history_title);
+                    TextView url = holder.itemView.findViewById(R.id.tv_history_url);
+                    String itemTitle = item.getTitle();
+                    title.setText((itemTitle != null && !itemTitle.isEmpty()) ? itemTitle : item.getUrl());
+                    url.setText(item.getUrl());
+                    holder.itemView.setOnClickListener(v -> {
+                        historyDialog.dismiss();
+                        wv.loadUrl(item.getUrl());
+                    });
+                }
+
+                @Override
+                public int getItemCount() {
+                    return items.size();
+                }
+            });
+        }
+
+        btnClear.setOnClickListener(v -> {
+            wv.clearHistory();
+            historyDialog.dismiss();
+            Toast.makeText(MainActivity.this, "History cleared", Toast.LENGTH_SHORT).show();
+        });
+
+        historyDialog.show();
     }
 
     private void hideKeyboard(View view) {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    private void showClearDataDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_fire_confirm, null);
+        androidx.appcompat.app.AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        dialogView.findViewById(R.id.btn_fire_cancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_fire_confirm).setOnClickListener(v -> {
+            dialog.dismiss();
+            clearAllBrowserData();
+        });
+
+        dialog.show();
+    }
+
+    private void clearAllBrowserData() {
+        android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+        cookieManager.removeAllCookies(null);
+        cookieManager.flush();
+
+        android.webkit.WebStorage.getInstance().deleteAllData();
+        android.webkit.GeolocationPermissions.getInstance().clearAll();
+
+        for (com.tuff.browser.tab.TabModel tab : tabManager.getTabs()) {
+            if (tab.getWebView() != null) {
+                tab.getWebView().clearCache(true);
+                tab.getWebView().clearHistory();
+                tab.getWebView().clearFormData();
+                tab.getWebView().clearSslPreferences();
+            }
+        }
+
+        tabManager.closeAllTabs();
+        navigateHome();
+        updateOmniboxText("");
+
+        try {
+            clearDirectory(getCacheDir());
+            clearDirectory(getCodeCacheDir());
+            java.io.File extCache = getExternalCacheDir();
+            if (extCache != null) clearDirectory(extCache);
+        } catch (Throwable ignored) {}
+
+        Toast.makeText(this, "All browsing data cleared", Toast.LENGTH_SHORT).show();
+    }
+
+    private void clearDirectory(java.io.File dir) {
+        if (dir != null && dir.isDirectory()) {
+            java.io.File[] files = dir.listFiles();
+            if (files != null) {
+                for (java.io.File f : files) {
+                    if (f.isDirectory()) clearDirectory(f);
+                    f.delete();
+                }
+            }
         }
     }
 }

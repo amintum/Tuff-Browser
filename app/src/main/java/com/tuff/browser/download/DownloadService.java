@@ -172,7 +172,7 @@ public class DownloadService extends Service {
             pauseFlag.set(true);
         }
 
-        HttpURLConnection conn = activeConnections.get(taskId);
+        HttpURLConnection conn = activeConnections.remove(taskId);
         if (conn != null) {
             try { conn.disconnect(); } catch (Exception ignored) {}
         }
@@ -180,7 +180,25 @@ public class DownloadService extends Service {
         task.setStatus(DownloadTask.Status.PAUSED);
         task.setSpeedBytesPerSec(0);
         DownloadRepository.getInstance().notifyStatusChanged(task);
-        NotificationManagerCompat.from(this).notify(getNotificationId(taskId), buildPausedNotification(task));
+
+        int notifId = getNotificationId(taskId);
+        boolean hasOtherActive = false;
+        DownloadTask nextActive = null;
+        for (DownloadTask t : DownloadRepository.getInstance().getTasks()) {
+            if (t.getStatus() == DownloadTask.Status.DOWNLOADING) {
+                hasOtherActive = true;
+                nextActive = t;
+                break;
+            }
+        }
+
+        if (hasOtherActive && nextActive != null) {
+            startForeground(getNotificationId(nextActive.getId()), buildProgressNotification(nextActive));
+            NotificationManagerCompat.from(this).notify(notifId, buildPausedNotification(task));
+        } else {
+            stopForeground(false);
+            NotificationManagerCompat.from(this).notify(notifId, buildPausedNotification(task));
+        }
     }
 
     private void handleResume(String taskId) {
@@ -199,36 +217,55 @@ public class DownloadService extends Service {
     private void handleCancel(String taskId) {
         if (taskId == null) return;
         DownloadTask task = DownloadRepository.getInstance().findTaskById(taskId);
-        if (task == null) return;
 
         AtomicBoolean pauseFlag = pauseFlags.get(taskId);
         if (pauseFlag != null) {
             pauseFlag.set(true);
         }
 
-        HttpURLConnection conn = activeConnections.get(taskId);
+        HttpURLConnection conn = activeConnections.remove(taskId);
         if (conn != null) {
             try { conn.disconnect(); } catch (Exception ignored) {}
         }
 
-        File file = task.getDestinationFile();
-        if (file != null && file.exists()) {
-            file.delete();
+        if (task != null) {
+            File file = task.getDestinationFile();
+            if (file != null && file.exists()) {
+                file.delete();
+            }
+
+            try {
+                File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (publicDir != null) {
+                    File pubFile = new File(publicDir, task.getFilename());
+                    if (pubFile.exists()) pubFile.delete();
+                }
+            } catch (Exception ignored) {}
+
+            task.setStatus(DownloadTask.Status.CANCELLED);
+            task.setSpeedBytesPerSec(0);
+            DownloadRepository.getInstance().removeTask(taskId);
         }
 
-        try {
-            File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (publicDir != null) {
-                File pubFile = new File(publicDir, task.getFilename());
-                if (pubFile.exists()) pubFile.delete();
+        int notifId = getNotificationId(taskId);
+        boolean hasOtherActive = false;
+        DownloadTask nextActive = null;
+        for (DownloadTask t : DownloadRepository.getInstance().getTasks()) {
+            if (t.getStatus() == DownloadTask.Status.DOWNLOADING) {
+                hasOtherActive = true;
+                nextActive = t;
+                break;
             }
-        } catch (Exception ignored) {}
+        }
 
-        task.setStatus(DownloadTask.Status.CANCELLED);
-        task.setSpeedBytesPerSec(0);
-        DownloadRepository.getInstance().removeTask(taskId);
-        NotificationManagerCompat.from(this).cancel(getNotificationId(taskId));
-        checkStopForeground();
+        if (hasOtherActive && nextActive != null) {
+            startForeground(getNotificationId(nextActive.getId()), buildProgressNotification(nextActive));
+            NotificationManagerCompat.from(this).cancel(notifId);
+        } else {
+            stopForeground(true);
+            NotificationManagerCompat.from(this).cancel(notifId);
+            stopSelf();
+        }
     }
 
     private void runDownloadTask(DownloadTask task) {
@@ -354,16 +391,14 @@ public class DownloadService extends Service {
                         lastUpdate = now;
                         bytesSinceLastUpdate = 0;
 
-                        NotificationManagerCompat.from(this).notify(getNotificationId(task.getId()), buildProgressNotification(task));
-                        DownloadRepository.getInstance().notifyProgress(task);
+                        if (!pauseFlag.get() && task.getStatus() == DownloadTask.Status.DOWNLOADING) {
+                            NotificationManagerCompat.from(this).notify(getNotificationId(task.getId()), buildProgressNotification(task));
+                            DownloadRepository.getInstance().notifyProgress(task);
+                        }
                     }
                 }
 
-                if (pauseFlag.get()) {
-                    task.setStatus(DownloadTask.Status.PAUSED);
-                    task.setSpeedBytesPerSec(0);
-                    DownloadRepository.getInstance().notifyStatusChanged(task);
-                    NotificationManagerCompat.from(this).notify(getNotificationId(task.getId()), buildPausedNotification(task));
+                if (pauseFlag.get() || task.getStatus() == DownloadTask.Status.CANCELLED) {
                     return;
                 }
 
@@ -379,7 +414,7 @@ public class DownloadService extends Service {
                 showCompletedNotification(task);
 
             } catch (Exception e) {
-                if (!pauseFlag.get()) {
+                if (!pauseFlag.get() && task.getStatus() != DownloadTask.Status.CANCELLED) {
                     Log.e(TAG, "Download error: " + e.getMessage(), e);
                     task.setStatus(DownloadTask.Status.FAILED);
                     task.setSpeedBytesPerSec(0);
@@ -392,6 +427,10 @@ public class DownloadService extends Service {
                 if (connection != null) connection.disconnect();
                 activeConnections.remove(task.getId());
                 pauseFlags.remove(task.getId());
+
+                if (task.getStatus() == DownloadTask.Status.PAUSED) {
+                    NotificationManagerCompat.from(this).notify(getNotificationId(task.getId()), buildPausedNotification(task));
+                }
                 checkStopForeground();
             }
         });
@@ -399,14 +438,18 @@ public class DownloadService extends Service {
 
     private void checkStopForeground() {
         boolean hasActive = false;
+        DownloadTask nextActive = null;
         for (DownloadTask t : DownloadRepository.getInstance().getTasks()) {
             if (t.getStatus() == DownloadTask.Status.DOWNLOADING) {
                 hasActive = true;
+                nextActive = t;
                 break;
             }
         }
         if (!hasActive) {
             stopForeground(false);
+        } else if (nextActive != null) {
+            startForeground(getNotificationId(nextActive.getId()), buildProgressNotification(nextActive));
         }
     }
 
@@ -448,7 +491,12 @@ public class DownloadService extends Service {
         Intent resumeIntent = new Intent(this, DownloadService.class);
         resumeIntent.setAction(ACTION_RESUME_DOWNLOAD);
         resumeIntent.putExtra(EXTRA_TASK_ID, task.getId());
-        PendingIntent piResume = PendingIntent.getService(this, getNotificationId(task.getId()) + 3, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent piResume;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            piResume = PendingIntent.getForegroundService(this, getNotificationId(task.getId()) + 3, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            piResume = PendingIntent.getService(this, getNotificationId(task.getId()) + 3, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        }
 
         Intent cancelIntent = new Intent(this, DownloadService.class);
         cancelIntent.setAction(ACTION_CANCEL_DOWNLOAD);
@@ -538,31 +586,31 @@ public class DownloadService extends Service {
             } catch (Exception e) {
                 Log.e(TAG, "MediaStore export error: " + e.getMessage(), e);
             }
-        }
-
-        // 2. Also copy to public Downloads directory (for direct file path access & older Android)
-        try {
-            File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (!publicDir.exists()) publicDir.mkdirs();
-            File publicFile = new File(publicDir, task.getFilename());
-            if (!publicFile.equals(source)) {
-                try (InputStream is = new FileInputStream(source);
-                     OutputStream os = new FileOutputStream(publicFile)) {
-                    byte[] buffer = new byte[32768];
-                    int len;
-                    while ((len = is.read(buffer)) != -1) {
-                        os.write(buffer, 0, len);
+        } else {
+            // Older Android (<= API 28): direct public Downloads file copy
+            try {
+                File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (!publicDir.exists()) publicDir.mkdirs();
+                File publicFile = new File(publicDir, task.getFilename());
+                if (!publicFile.equals(source)) {
+                    try (InputStream is = new FileInputStream(source);
+                         OutputStream os = new FileOutputStream(publicFile)) {
+                        byte[] buffer = new byte[32768];
+                        int len;
+                        while ((len = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, len);
+                        }
+                        os.flush();
                     }
-                    os.flush();
                 }
+                MediaScannerConnection.scanFile(this, new String[]{publicFile.getAbsolutePath()}, new String[]{mime}, null);
+            } catch (Exception e) {
+                Log.e(TAG, "Direct public file copy error: " + e.getMessage(), e);
             }
-            MediaScannerConnection.scanFile(this, new String[]{publicFile.getAbsolutePath()}, new String[]{mime}, null);
-        } catch (Exception e) {
-            Log.e(TAG, "Direct public file copy error: " + e.getMessage(), e);
         }
     }
 
-    private int getNotificationId(String taskId) {
+    public static int getNotificationId(String taskId) {
         return NOTIFICATION_ID_BASE + Math.abs(taskId.hashCode() % 10000);
     }
 

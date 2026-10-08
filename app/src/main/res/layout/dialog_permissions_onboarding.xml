@@ -109,11 +109,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:backgroundTint="@color/primary"
+        android:backgroundTint="@android:color/white"
         android:padding="12dp"
         android:text="Allow Permissions"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="16sp"
+        android:textStyle="bold"
         app:cornerRadius="12dp" />
 
     <TextView
@@ -126,6 +127,6 @@
         android:text="Skip for now"
         android:textColor="@color/text_secondary"
         android:textSize="14sp"
-        android:background="?attr/selectableItemBackground" />
+        android:background="@android:color/transparent" />
 
 </LinearLayout>

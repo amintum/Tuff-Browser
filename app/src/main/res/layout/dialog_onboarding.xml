@@ -24,10 +24,11 @@
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
-    <RadioGroup
+    <LinearLayout
         android:id="@+id/rg_search_engines"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <!-- Brave Option -->
         <RadioButton
@@ -50,15 +51,38 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
-        <!-- Google Option (With Warning) -->
-        <RadioButton
-            android:id="@+id/rb_google"
+        <!-- Google Option (With Warning and Why Button) -->
+        <LinearLayout
+            android:id="@+id/row_google"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="Google (Unsafe · Not recommended)"
-            android:textColor="@color/warning_red"
-            android:textSize="15sp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingEnd="4dp">
+
+            <RadioButton
+                android:id="@+id/rb_google"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="12dp"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/btn_google_why"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Why?"
+                android:textColor="@color/warning_red"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:background="@drawable/bg_why_chip"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
 
         <!-- Custom Engine Option -->
         <RadioButton
@@ -70,7 +94,7 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
-    </RadioGroup>
+    </LinearLayout>
 
     <!-- Custom URL Input (Hidden unless Custom is selected) -->
     <EditText
@@ -92,11 +116,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:backgroundTint="@color/primary"
+        android:backgroundTint="@android:color/white"
         android:padding="12dp"
         android:text="@string/continue_btn"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="16sp"
+        android:textStyle="bold"
         app:cornerRadius="12dp" />
 
 </LinearLayout>

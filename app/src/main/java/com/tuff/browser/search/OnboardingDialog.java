@@ -2,11 +2,15 @@ package com.tuff.browser.search;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 
@@ -39,24 +43,49 @@ public class OnboardingDialog extends BottomSheetDialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_onboarding);
 
-        RadioGroup rg = findViewById(R.id.rg_search_engines);
+        getBehavior().setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+        getBehavior().setSkipCollapsed(true);
+
         RadioButton rbBrave = findViewById(R.id.rb_brave);
         RadioButton rbDdg = findViewById(R.id.rb_ddg);
         RadioButton rbGoogle = findViewById(R.id.rb_google);
         RadioButton rbCustom = findViewById(R.id.rb_custom);
+        View rowGoogle = findViewById(R.id.row_google);
+        View btnWhy = findViewById(R.id.btn_google_why);
         EditText etCustomUrl = findViewById(R.id.et_custom_engine_url);
         MaterialButton btnContinue = findViewById(R.id.btn_continue);
 
+        if (rbGoogle != null) {
+            rbGoogle.setText(Html.fromHtml("Google <font color='#FF5252'>(Unsafe · Not recommended)</font>", Html.FROM_HTML_MODE_COMPACT));
+        }
+
         if (rbBrave != null) rbBrave.setChecked(true);
 
-        if (rg != null && etCustomUrl != null) {
-            rg.setOnCheckedChangeListener((group, checkedId) -> {
-                if (checkedId == R.id.rb_custom) {
-                    etCustomUrl.setVisibility(View.VISIBLE);
-                } else {
-                    etCustomUrl.setVisibility(View.GONE);
-                }
-            });
+        View.OnClickListener selectListener = v -> {
+            int id = v.getId();
+            boolean isBrave = (id == R.id.rb_brave);
+            boolean isDdg = (id == R.id.rb_ddg);
+            boolean isGoogle = (id == R.id.rb_google || id == R.id.row_google);
+            boolean isCustom = (id == R.id.rb_custom);
+
+            if (rbBrave != null) rbBrave.setChecked(isBrave);
+            if (rbDdg != null) rbDdg.setChecked(isDdg);
+            if (rbGoogle != null) rbGoogle.setChecked(isGoogle);
+            if (rbCustom != null) rbCustom.setChecked(isCustom);
+
+            if (etCustomUrl != null) {
+                etCustomUrl.setVisibility(isCustom ? View.VISIBLE : View.GONE);
+            }
+        };
+
+        if (rbBrave != null) rbBrave.setOnClickListener(selectListener);
+        if (rbDdg != null) rbDdg.setOnClickListener(selectListener);
+        if (rbGoogle != null) rbGoogle.setOnClickListener(selectListener);
+        if (rowGoogle != null) rowGoogle.setOnClickListener(selectListener);
+        if (rbCustom != null) rbCustom.setOnClickListener(selectListener);
+
+        if (btnWhy != null) {
+            btnWhy.setOnClickListener(v -> showWhyGoogleDialog());
         }
 
         if (btnContinue != null) {
@@ -85,5 +114,21 @@ public class OnboardingDialog extends BottomSheetDialog {
                 dismiss();
             });
         }
+    }
+
+    private void showWhyGoogleDialog() {
+        Dialog dialog = new Dialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_why_google);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = (int) (getContext().getResources().getDisplayMetrics().widthPixels * 0.90);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        View btnClose = dialog.findViewById(R.id.btn_why_close);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+        dialog.show();
     }
 }

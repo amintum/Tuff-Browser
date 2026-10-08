@@ -7,85 +7,7 @@
     android:orientation="vertical"
     android:background="@color/background_dark">
 
-    <!-- TOP BAR CONTAINER (Visible when position == TOP) -->
-    <LinearLayout
-        android:id="@+id/container_top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/surface_card"
-        android:elevation="4dp"
-        android:visibility="gone">
 
-        <!-- Top Omnibar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="8dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_omnibar"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="8dp">
-
-                <!-- Search Input / Website URL -->
-                <EditText
-                    android:id="@+id/et_omnibox_top"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:hint="@string/search_hint"
-                    android:imeOptions="actionGo"
-                    android:inputType="textUri|textNoSuggestions"
-                    android:paddingStart="6dp"
-                    android:singleLine="true"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:textSize="14sp" />
-
-                <!-- Tabs Badge -->
-                <FrameLayout
-                    android:id="@+id/btn_tabs_top"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="?attr/selectableItemBackgroundBorderless">
-
-                    <TextView
-                        android:id="@+id/tv_tabs_count_top"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_badge"
-                        android:gravity="center"
-                        android:text="1"
-                        android:textColor="@color/text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-
-                <!-- Menu Button (Three dots / colon) -->
-                <ImageView
-                    android:id="@+id/btn_menu_top"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Menu"
-                    android:src="@drawable/ic_menu" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-    </LinearLayout>
 
     <!-- FIND IN PAGE BAR (Overlays/Replaces Omnibar when active) -->
     <LinearLayout
@@ -160,7 +82,7 @@
         android:layout_width="match_parent"
         android:layout_height="2.5dp"
         android:progressTint="@color/accent"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
     <!-- SWIPE TO REFRESH LAYOUT (Circular indicator on swipe down) -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -179,9 +101,9 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- BOTTOM BAR CONTAINER (Visible when position == BOTTOM by default) -->
+    <!-- UNIFIED OMNIBAR CONTAINER (Placed dynamically at top or bottom) -->
     <LinearLayout
-        android:id="@+id/container_bottom_bar"
+        android:id="@+id/container_omnibar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -189,13 +111,12 @@
         android:elevation="8dp">
 
         <View
+            android:id="@+id/omnibar_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/divider" />
 
-        <!-- Bottom Omnibar -->
         <LinearLayout
-            android:id="@+id/layout_bottom_omnibar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -213,7 +134,7 @@
 
                 <!-- Search Input / Website URL -->
                 <EditText
-                    android:id="@+id/et_omnibox_bottom"
+                    android:id="@+id/et_omnibox"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="6dp"
@@ -225,19 +146,20 @@
                     android:inputType="textUri|textNoSuggestions"
                     android:paddingStart="6dp"
                     android:singleLine="true"
+                    android:selectAllOnFocus="true"
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_secondary"
                     android:textSize="14sp" />
 
                 <!-- Tabs Badge -->
                 <FrameLayout
-                    android:id="@+id/btn_tabs_bottom"
+                    android:id="@+id/btn_tabs"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:background="?attr/selectableItemBackgroundBorderless">
 
                     <TextView
-                        android:id="@+id/tv_tabs_count_bottom"
+                        android:id="@+id/tv_tabs_count"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
@@ -251,7 +173,7 @@
 
                 <!-- Menu Button (Three dots / colon) -->
                 <ImageView
-                    android:id="@+id/btn_menu_bottom"
+                    android:id="@+id/btn_menu"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:padding="5dp"

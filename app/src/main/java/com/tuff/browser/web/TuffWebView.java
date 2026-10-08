@@ -4,13 +4,14 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 public class TuffWebView extends WebView {
 
-    public static final String DESKTOP_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+    public static final String DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
     private String defaultMobileUA;
     private boolean isDesktopMode = false;
     private int currentTextZoom = 100;
@@ -81,10 +82,42 @@ public class TuffWebView extends WebView {
             settings.setUserAgentString(DESKTOP_UA);
             settings.setUseWideViewPort(true);
             settings.setLoadWithOverviewMode(true);
+            settings.setSupportZoom(true);
+            settings.setBuiltInZoomControls(true);
         } else {
             settings.setUserAgentString(defaultMobileUA);
+            settings.setUseWideViewPort(false);
+            settings.setLoadWithOverviewMode(false);
         }
-        reload();
+        setInitialScale(0);
+
+        String currentUrl = getUrl();
+        if (currentUrl != null && !currentUrl.isEmpty() && !"about:blank".equals(currentUrl)) {
+            if (enabled) {
+                String desktopUrl = currentUrl.replace("://m.", "://www.").replace("://mobile.", "://www.");
+                if (!desktopUrl.equals(currentUrl)) {
+                    loadUrl(desktopUrl);
+                    return;
+                }
+            }
+            reload();
+        }
+    }
+
+    public void applyDesktopViewport() {
+        if (!isDesktopMode) return;
+        evaluateJavascript(
+            "(function() {" +
+            "  var meta = document.querySelector('meta[name=\"viewport\"]');" +
+            "  if (meta) {" +
+            "    meta.setAttribute('content', 'width=1024');" +
+            "  } else {" +
+            "    meta = document.createElement('meta');" +
+            "    meta.name = 'viewport';" +
+            "    meta.content = 'width=1024';" +
+            "    if (document.head) document.head.appendChild(meta);" +
+            "  }" +
+            "})();", null);
     }
 
     public int getTextZoomLevel() {

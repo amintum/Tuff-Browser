@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.FileProvider;
 
 import com.tuff.browser.R;
@@ -110,6 +111,8 @@ public class FileUtils {
         return "application/vnd.android.package-archive".equalsIgnoreCase(mimeType);
     }
 
+    public static File pendingInstallApk = null;
+
     /**
      * Opens or installs a downloaded file with full support for Package Manager
      * and external view applications.
@@ -126,6 +129,7 @@ public class FileUtils {
         if (isApk(file.getName(), mimeType)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!context.getPackageManager().canRequestPackageInstalls()) {
+                    pendingInstallApk = file;
                     Intent settingsIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
                     settingsIntent.setData(Uri.parse("package:" + context.getPackageName()));
                     if (!(context instanceof Activity)) {
@@ -197,18 +201,27 @@ public class FileUtils {
     public static void deleteDownloadedTask(Context context, DownloadTask task) {
         if (task == null) return;
 
-        // 1. If actively downloading/running, cancel through service
-        try {
-            DownloadService.cancel(context, task.getId());
-        } catch (Exception ignored) {}
+        // 1. If actively downloading or paused, cancel through service
+        if (task.getStatus() == DownloadTask.Status.DOWNLOADING || task.getStatus() == DownloadTask.Status.PENDING || task.getStatus() == DownloadTask.Status.PAUSED) {
+            try {
+                DownloadService.cancel(context, task.getId());
+            } catch (Exception ignored) {}
+        }
 
-        // 2. Delete internal private file
+        // 2. Dismiss any existing notification immediately
+        if (context != null) {
+            try {
+                NotificationManagerCompat.from(context).cancel(DownloadService.getNotificationId(task.getId()));
+            } catch (Exception ignored) {}
+        }
+
+        // 3. Delete internal private file
         File internal = task.getDestinationFile();
         if (internal != null && internal.exists()) {
             internal.delete();
         }
 
-        // 3. Delete from public Downloads directory
+        // 4. Delete from public Downloads directory
         try {
             File publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             if (publicDir != null) {
@@ -219,7 +232,7 @@ public class FileUtils {
             }
         } catch (Exception ignored) {}
 
-        // 4. On Android 10+ (API 29+), delete MediaStore.Downloads record
+        // 5. On Android 10+ (API 29+), delete MediaStore.Downloads record
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && context != null) {
             try {
                 Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -229,7 +242,7 @@ public class FileUtils {
             } catch (Exception ignored) {}
         }
 
-        // 5. Remove task from repository
+        // 6. Remove task from repository
         DownloadRepository.getInstance().removeTask(task.getId());
     }
 

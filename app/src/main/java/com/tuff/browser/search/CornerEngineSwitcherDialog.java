@@ -1,9 +1,14 @@
 package com.tuff.browser.search;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -96,6 +101,27 @@ public class CornerEngineSwitcherDialog extends BottomSheetDialog {
         if (btnEditCustom != null) {
             btnEditCustom.setOnClickListener(v -> promptCustomEngineUrl());
         }
+
+        View btnWhy = findViewById(R.id.btn_google_why);
+        if (btnWhy != null) {
+            btnWhy.setOnClickListener(v -> showWhyGoogleDialog());
+        }
+    }
+
+    private void showWhyGoogleDialog() {
+        Dialog dialog = new Dialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_why_google);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = (int) (getContext().getResources().getDisplayMetrics().widthPixels * 0.90);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        View btnClose = dialog.findViewById(R.id.btn_why_close);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+        dialog.show();
     }
 
     private void selectEngine(String id) {

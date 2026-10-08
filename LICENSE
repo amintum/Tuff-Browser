@@ -1,0 +1,36 @@
+Tuff Browser Public License
+
+Copyright (c) 2026 Amintum (https://github.com/amintum)
+Project: Tuff Browser (https://github.com/amintum/Tuff-Browser)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software subject to the following conditions:
+
+1. Mandatory Attribution:
+   Any open-source project, fork, redistribution, modification, or derivative
+   work based on or incorporating any part of this Software MUST provide clear,
+   prominent credit to the original author (Amintum) and include a direct link
+   to the original repository:
+   https://github.com/amintum/Tuff-Browser
+
+2. Closed-Source & Proprietary Use:
+   Commercial, proprietary, or closed-source use, distribution, or bundling
+   of this Software (in whole or in part) is NOT permitted by default.
+   To include or use this Software in any closed-source project, you MUST
+   open an issue on the official GitHub repository:
+   https://github.com/amintum/Tuff-Browser
+   and obtain explicit written permission from the author prior to distribution.
+
+3. Derived Works & Forks:
+   All forks, redistributions, and works derived from this Software must retain
+   this license and display visible credit in their user-facing documentation
+   or about dialogs.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
