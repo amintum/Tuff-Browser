@@ -37,7 +37,6 @@ Unlike browsers that pass links to Android's often-restricted system downloader:
 - **Live Speed**: Shows real-time transfer speed (KB/s, MB/s) and progress percentage.
 - **Pause & Resume**: Supports HTTP Range headers so you never lose partial downloads.
 - **Notification Actions**: Pause, resume, or cancel straight from your notification tray.
-- **Smart APK Install Resume**: When enabling "Install unknown apps" in system settings, Tuff automatically brings up the package installer the moment you return—no need to tap the file again.
 
 ### 📱 Custom ROM & GSI Ready
 - **Low-Storage Choice**: Takes up under 2 MB—saving massive amounts of space on system partitions compared to heavy stock browsers.
