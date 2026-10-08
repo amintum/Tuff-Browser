@@ -33,6 +33,10 @@ Most mobile browsers are 150 MB+ giants packed with news feeds and background tr
 ## Key Features
 
 ### 🧭 Clean & Ergonomic Interface
+- **Native Distraction-Free Homepage**: Clean dark AMOLED canvas (`#14171E`) featuring the floating Tuff vector logo and a crisp white underline search bar.
+- **Custom Website Shortcuts Shelf**: Zero sponsored or default bookmarks. Add your favorite websites with custom titles and URLs; tap to open, long-press to delete.
+- **Integrated Utility Dock**: Quick-access shortcuts for adding bookmarks `[+]`, opening downloads `[↓]`, and one-tap nuclear data wipe `[🔥]`.
+- **Search Query Acceleration**: Real-time asynchronous DNS prefetching resolves search engine hosts as you type, eliminating lookup lag.
 - **Omnibar Position**: Switch between **Bottom** (easy thumb reach) and **Top** with one tap.
 - **Fitted 9-Button Quick Bar**: All essentials fit in a single row without horizontal scrolling:
   - Back / Forward
