@@ -45,7 +45,7 @@ Most mobile browsers are 150 MB+ giants packed with news feeds, crypto wallets, 
   - In-page search ("Find in page") with match counters
 - **Nuclear Data Wipe (🔥)**: One tap closes tabs and wipes cookies, web cache, DOM storage, and history instantly.
 
-### 📥 Standalone Download Manager
+### 📥 Built-in Downloader
 Unlike browsers that pass links to Android's often-restricted system downloader:
 - **Live Speed**: Shows real-time transfer speed (KB/s, MB/s) and progress percentage.
 - **Pause & Resume**: Supports HTTP Range headers so you never lose partial downloads.
