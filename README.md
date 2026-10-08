@@ -74,7 +74,7 @@ Unlike browsers that pass links to Android's often-restricted system downloader:
 | :--- | :--- |
 | **APK Size** | ~1.58 MB |
 | **Compatibility** | Android 7.0+ (API 24+) |
-| **Engine** | Hardware-accelerated System WebView (Chromium) |
+| **Engine** | WebView |
 | **Telemetry / Ads** | None (0%) |
 
 ---
