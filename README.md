@@ -36,6 +36,7 @@ Most mobile browsers are 150 MB+ giants packed with news feeds, crypto wallets, 
 - **Omnibar Position**: Switch between **Bottom** (easy thumb reach) and **Top** with one tap.
 - **Fitted 9-Button Quick Bar**: All essentials fit in a single row without horizontal scrolling:
   - Back / Forward
+  - Tab Management
   - Zoom Out / In with floating percentage indicator (e.g. `80% zoom`)
   - Desktop Site toggle with live active highlight
   - Download current page
