@@ -20,7 +20,7 @@
 
 ## Why Tuff?
 
-Most mobile browsers are 150 MB+ giants packed with news feeds, crypto wallets, and background trackers. **Tuff Browser** strips all of that away:
+Most mobile browsers are 150 MB+ giants packed with news feeds and background trackers. **Tuff Browser** strips all of that away:
 
 - **~1.6 MB APK**: Installs instantly, uses minimal RAM, and runs smoothly on any device.
 - **Own Downloader**: Doesn't rely on Android's buggy system download manager. Real-time speeds, pause/resume, and notification controls.
