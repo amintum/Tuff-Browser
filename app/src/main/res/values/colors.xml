@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1E1E1E</color>
-    <color name="primary_dark">#121212</color>
+    <color name="primary">#14171E</color>
+    <color name="primary_dark">#0F1217</color>
     <color name="accent">#FF5722</color>
-    <color name="background_light">#121212</color>
-    <color name="background_dark">#121212</color>
-    <color name="surface_card">#1E1E1E</color>
-    <color name="surface_elevated">#262626</color>
+    <color name="background_light">#14171E</color>
+    <color name="background_dark">#14171E</color>
+    <color name="surface_card">#14171E</color>
+    <color name="surface_elevated">#1C202C</color>
     <color name="text_primary">#F0F0F0</color>
-    <color name="text_secondary">#9E9E9E</color>
-    <color name="omnibar_bg">#2A2A2A</color>
-    <color name="divider">#2D2D2D</color>
+    <color name="text_secondary">#8A92A6</color>
+    <color name="omnibar_bg">#1C202C</color>
+    <color name="divider">#1F2432</color>
     <color name="icon_tint">#E0E0E0</color>
     <color name="brave_orange">#FB542B</color>
     <color name="ddg_orange">#DE5833</color>

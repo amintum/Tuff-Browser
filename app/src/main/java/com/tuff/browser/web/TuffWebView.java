@@ -57,7 +57,7 @@ public class TuffWebView extends WebView {
         setFocusableInTouchMode(true);
 
         // Dark mode defaults
-        setBackgroundColor(0xFF121212);
+        setBackgroundColor(0xFF14171E);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
                 settings.setForceDark(WebSettings.FORCE_DARK_ON);
