@@ -50,7 +50,7 @@ public class TuffWebView extends WebView {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
         settings.setEnableSmoothTransition(true);
-        settings.setGeolocationEnabled(true);
+        settings.setGeolocationEnabled(false);
 
         // Hardware acceleration hints
         setFocusable(true);
