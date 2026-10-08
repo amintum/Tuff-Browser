@@ -72,7 +72,7 @@ Unlike browsers that pass links to Android's often-restricted system downloader:
 
 | Detail | Specification |
 | :--- | :--- |
-| **APK Size** | ~1.65 MB (Release, R8 minified) |
+| **APK Size** | ~1.58 MB |
 | **Compatibility** | Android 7.0+ (API 24+) |
 | **Engine** | Hardware-accelerated System WebView (Chromium) |
 | **Telemetry / Ads** | None (0%) |
