@@ -16,4 +16,11 @@
     <color name="ddg_orange">#DE5833</color>
     <color name="warning_red">#FF5252</color>
     <color name="warning_red_bg">#2C1517</color>
+    <color name="homepage_bg">#14171E</color>
+    <color name="cyan_accent">#00E5FF</color>
+    <color name="rect_slot_bg">#1C202C</color>
+    <color name="underline_white">#FFFFFF</color>
+    <color name="underline_cyan">#00E5FF</color>
+    <color name="underline_fire">#FF5722</color>
+    <color name="underline_shortcut">#8A92A6</color>
 </resources>

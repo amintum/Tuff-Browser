@@ -84,22 +84,212 @@
         android:progressTint="@color/accent"
         android:visibility="invisible" />
 
-    <!-- SWIPE TO REFRESH LAYOUT (Circular indicator on swipe down) -->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh_layout"
+    <!-- MAIN CONTENT AREA: WEBVIEW & NATIVE HOMEPAGE -->
+    <FrameLayout
+        android:id="@+id/main_content_area"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/background_dark">
+        android:background="@color/homepage_bg">
 
-        <!-- WEBVIEW CONTAINER -->
-        <FrameLayout
-            android:id="@+id/webview_container"
+        <!-- SWIPE TO REFRESH LAYOUT & WEBVIEW CONTAINER -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/background_dark" />
+            android:background="@color/homepage_bg">
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <!-- WEBVIEW CONTAINER -->
+            <FrameLayout
+                android:id="@+id/webview_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/homepage_bg" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- NATIVE HOMEPAGE CONTAINER (Shown on about:home) -->
+        <ScrollView
+            android:id="@+id/container_homepage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:background="@color/homepage_bg"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingHorizontal="28dp"
+                android:paddingVertical="32dp">
+
+                <!-- 1. FLOATING LAUNCHER LOGO (No background, no outline) -->
+                <ImageView
+                    android:id="@+id/iv_home_logo"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    android:src="@drawable/ic_launcher_foreground"
+                    android:contentDescription="Tuff Browser"
+                    android:layout_marginBottom="32dp" />
+
+                <!-- 2. CLEAN WHITE UNDERLINE SEARCH BAR -->
+                <LinearLayout
+                    android:id="@+id/layout_home_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="28dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingBottom="4dp">
+
+                        <ImageView
+                            android:id="@+id/iv_home_search_icon"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_search"
+                            app:tint="@color/underline_white"
+                            android:contentDescription="Search"
+                            android:layout_marginEnd="10dp" />
+
+                        <EditText
+                            android:id="@+id/et_home_search"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Search"
+                            android:imeOptions="actionSearch"
+                            android:inputType="textUri|textNoSuggestions"
+                            android:singleLine="true"
+                            android:textColor="@color/underline_white"
+                            android:textColorHint="@color/text_secondary"
+                            android:textSize="15sp" />
+
+                    </LinearLayout>
+
+                    <!-- Crisp White Bottom Underline -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:background="@color/underline_white" />
+
+                </LinearLayout>
+
+                <!-- 3. ARRANGEMENT B: UTILITY ROW (Top-Tier) -->
+                <LinearLayout
+                    android:id="@+id/layout_home_utilities"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal">
+
+                    <!-- [+] Add Shortcut Slot -->
+                    <FrameLayout
+                        android:id="@+id/btn_home_add_shortcut"
+                        android:layout_width="44dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_rect_slot_base"
+                        android:layout_marginEnd="12dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="+"
+                            android:textColor="@color/underline_white"
+                            android:textSize="18sp"
+                            android:textStyle="normal" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:layout_gravity="bottom"
+                            android:background="@color/underline_white" />
+                    </FrameLayout>
+
+                    <!-- [↓] Downloads Slot -->
+                    <FrameLayout
+                        android:id="@+id/btn_home_downloads"
+                        android:layout_width="44dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_rect_slot_base"
+                        android:layout_marginEnd="12dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_download"
+                            app:tint="@color/underline_cyan"
+                            android:contentDescription="Downloads" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:layout_gravity="bottom"
+                            android:background="@color/underline_cyan" />
+                    </FrameLayout>
+
+                    <!-- [🔥] Fire / Clear Data Slot -->
+                    <FrameLayout
+                        android:id="@+id/btn_home_fire"
+                        android:layout_width="44dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_rect_slot_base"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_fire"
+                            android:contentDescription="Clear Data" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:layout_gravity="bottom"
+                            android:background="@color/underline_fire" />
+                    </FrameLayout>
+
+                </LinearLayout>
+
+                <!-- 4. ARRANGEMENT B: SHORTCUTS SHELF (Bottom-Tier) -->
+                <HorizontalScrollView
+                    android:id="@+id/scroll_home_shortcuts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/layout_home_shortcuts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_gravity="center_horizontal" />
+
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </FrameLayout>
 
     <!-- UNIFIED OMNIBAR CONTAINER (Placed dynamically at top or bottom) -->
     <LinearLayout

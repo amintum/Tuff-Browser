@@ -59,6 +59,7 @@ import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
 import com.tuff.browser.util.Prefs;
+import com.tuff.browser.util.ShortcutModel;
 import com.tuff.browser.web.TuffChromeClient;
 import com.tuff.browser.web.TuffWebClient;
 import com.tuff.browser.web.TuffWebView;
@@ -88,6 +89,14 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private ImageView btnFindPrev;
     private ImageView btnFindNext;
     private ImageView btnFindClose;
+
+    // Native Homepage Views
+    private View containerHomepage;
+    private EditText etHomeSearch;
+    private View btnHomeAddShortcut;
+    private View btnHomeDownloads;
+    private View btnHomeFire;
+    private LinearLayout layoutHomeShortcuts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,7 +177,15 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         tvTabsCount = findViewById(R.id.tv_tabs_count);
         btnMenu = findViewById(R.id.btn_menu);
 
+        containerHomepage = findViewById(R.id.container_homepage);
+        etHomeSearch = findViewById(R.id.et_home_search);
+        btnHomeAddShortcut = findViewById(R.id.btn_home_add_shortcut);
+        btnHomeDownloads = findViewById(R.id.btn_home_downloads);
+        btnHomeFire = findViewById(R.id.btn_home_fire);
+        layoutHomeShortcuts = findViewById(R.id.layout_home_shortcuts);
+
         initFindInPage();
+        initHomepage();
     }
 
     private void setupListeners() {
@@ -284,7 +301,151 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         });
     }
 
+    private void initHomepage() {
+        if (etHomeSearch != null) {
+            etHomeSearch.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_GO
+                        || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    String query = etHomeSearch.getText().toString();
+                    if (!query.trim().isEmpty()) {
+                        hideKeyboard(etHomeSearch);
+                        etHomeSearch.clearFocus();
+                        loadQueryOrUrl(query);
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+
+        if (btnHomeAddShortcut != null) {
+            btnHomeAddShortcut.setOnClickListener(v -> showAddShortcutDialog());
+        }
+
+        if (btnHomeDownloads != null) {
+            btnHomeDownloads.setOnClickListener(v -> new DownloadManagerSheet(MainActivity.this).show());
+        }
+
+        if (btnHomeFire != null) {
+            btnHomeFire.setOnClickListener(v -> showClearDataDialog());
+        }
+
+        renderHomepageShortcuts();
+    }
+
+    private void showHomepage(boolean visible) {
+        if (containerHomepage != null) {
+            containerHomepage.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setVisibility(visible ? View.GONE : View.VISIBLE);
+        }
+        if (visible) {
+            if (etHomeSearch != null) {
+                etHomeSearch.setText("");
+            }
+            renderHomepageShortcuts();
+        }
+    }
+
+    private boolean isHomepageVisible() {
+        return containerHomepage != null && containerHomepage.getVisibility() == View.VISIBLE;
+    }
+
+    private void renderHomepageShortcuts() {
+        if (layoutHomeShortcuts == null) return;
+        layoutHomeShortcuts.removeAllViews();
+
+        List<ShortcutModel> shortcuts = prefs.getHomepageShortcuts();
+        for (ShortcutModel shortcut : shortcuts) {
+            View itemView = getLayoutInflater().inflate(R.layout.item_home_shortcut, layoutHomeShortcuts, false);
+            TextView tvInitials = itemView.findViewById(R.id.tv_shortcut_initials);
+            if (tvInitials != null) {
+                tvInitials.setText(shortcut.getInitials());
+            }
+
+            itemView.setOnClickListener(v -> {
+                loadQueryOrUrl(shortcut.getUrl());
+            });
+
+            itemView.setOnLongClickListener(v -> {
+                showRemoveShortcutDialog(shortcut);
+                return true;
+            });
+
+            layoutHomeShortcuts.addView(itemView);
+        }
+    }
+
+    private void showAddShortcutDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_add_shortcut);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        EditText etName = dialog.findViewById(R.id.et_shortcut_name);
+        EditText etUrl = dialog.findViewById(R.id.et_shortcut_url);
+        View btnCancel = dialog.findViewById(R.id.btn_shortcut_cancel);
+        View btnSave = dialog.findViewById(R.id.btn_shortcut_save);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSave.setOnClickListener(v -> {
+            String name = etName != null ? etName.getText().toString().trim() : "";
+            String url = etUrl != null ? etUrl.getText().toString().trim() : "";
+            if (url.isEmpty()) {
+                Toast.makeText(MainActivity.this, "URL cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (name.isEmpty()) {
+                try {
+                    Uri parsed = Uri.parse(url.startsWith("http") ? url : "https://" + url);
+                    name = parsed.getHost() != null ? parsed.getHost() : "Site";
+                } catch (Exception e) {
+                    name = "Site";
+                }
+            }
+
+            List<ShortcutModel> list = prefs.getHomepageShortcuts();
+            list.add(new ShortcutModel(String.valueOf(System.currentTimeMillis()), name, url));
+            prefs.saveHomepageShortcuts(list);
+            renderHomepageShortcuts();
+            dialog.dismiss();
+            Toast.makeText(MainActivity.this, "Shortcut added", Toast.LENGTH_SHORT).show();
+        });
+
+        dialog.show();
+    }
+
+    private void showRemoveShortcutDialog(ShortcutModel shortcut) {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Remove Shortcut")
+            .setMessage("Remove \"" + shortcut.getTitle() + "\" from homepage?")
+            .setPositiveButton("Remove", (d, w) -> {
+                List<ShortcutModel> list = prefs.getHomepageShortcuts();
+                List<ShortcutModel> updated = new ArrayList<>();
+                for (ShortcutModel m : list) {
+                    if (!m.getId().equals(shortcut.getId())) {
+                        updated.add(m);
+                    }
+                }
+                prefs.saveHomepageShortcuts(updated);
+                renderHomepageShortcuts();
+                Toast.makeText(MainActivity.this, "Shortcut removed", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void loadQueryOrUrl(String input) {
+        if (input == null || input.trim().isEmpty() || "about:home".equalsIgnoreCase(input.trim())) {
+            navigateHome();
+            return;
+        }
+        showHomepage(false);
         String resolved = engineManager.resolveInput(input);
         TuffWebView wv = getActiveWebView();
         if (wv != null) {
@@ -293,9 +454,13 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void navigateHome() {
-        String homeUrl = engineManager.getHomeUrl();
-        TuffWebView wv = getActiveWebView();
-        if (wv != null) wv.loadUrl(homeUrl);
+        showHomepage(true);
+        TabModel current = tabManager.getCurrentTab();
+        if (current != null) {
+            current.setUrl("about:home");
+            current.setTitle("Tuff Browser");
+        }
+        updateOmniboxText("about:home");
     }
 
     private void handleBack() {
@@ -303,11 +468,15 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             hideFindInPage();
             return;
         }
+        if (isHomepageVisible()) {
+            super.onBackPressed();
+            return;
+        }
         TuffWebView wv = getActiveWebView();
         if (wv != null && wv.canGoBack()) {
             wv.goBack();
         } else {
-            super.onBackPressed();
+            navigateHome();
         }
     }
 
@@ -476,13 +645,16 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         webViewContainer.addView(webView);
         attachWebViewCallbacks(tab);
 
-        if ("about:blank".equals(tab.getUrl()) || tab.getUrl().isEmpty()) {
+        String url = tab.getUrl();
+        if ("about:home".equals(url) || "about:blank".equals(url) || url == null || url.isEmpty()) {
             navigateHome();
-        } else if (webView.getUrl() == null) {
-            webView.loadUrl(tab.getUrl());
+        } else {
+            showHomepage(false);
+            if (webView.getUrl() == null) {
+                webView.loadUrl(url);
+            }
+            updateOmniboxText(url);
         }
-
-        updateOmniboxText(tab.getUrl());
     }
 
     @Override
@@ -496,7 +668,13 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         wv.setWebViewClient(new TuffWebClient(this, new TuffWebClient.Callback() {
             @Override
             public void onPageStarted(String url) {
-                progressBar.setVisibility(View.VISIBLE);
+                if ("about:home".equals(url)) {
+                    showHomepage(true);
+                    progressBar.setVisibility(View.INVISIBLE);
+                } else {
+                    showHomepage(false);
+                    progressBar.setVisibility(View.VISIBLE);
+                }
                 tab.setUrl(url);
                 updateOmniboxText(url);
             }
@@ -506,6 +684,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 progressBar.setVisibility(View.INVISIBLE);
                 if (swipeRefreshLayout != null) {
                     swipeRefreshLayout.setRefreshing(false);
+                }
+                if ("about:home".equals(url)) {
+                    showHomepage(true);
                 }
                 tab.setUrl(url);
                 updateOmniboxText(url);
@@ -584,7 +765,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void updateOmniboxText(String url) {
         if (etOmnibox != null) {
-            etOmnibox.setText((url == null || "about:blank".equals(url)) ? "" : url);
+            etOmnibox.setText((url == null || "about:blank".equals(url) || "about:home".equals(url)) ? "" : url);
         }
     }
 

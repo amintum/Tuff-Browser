@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_card"
+    android:padding="18dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Shortcut"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="14dp" />
+
+    <EditText
+        android:id="@+id/et_shortcut_name"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:background="@drawable/bg_omnibar"
+        android:hint="Shortcut name (e.g. GitHub)"
+        android:inputType="textCapWords"
+        android:paddingHorizontal="12dp"
+        android:singleLine="true"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="13sp"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/et_shortcut_url"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:background="@drawable/bg_omnibar"
+        android:hint="Website URL (e.g. github.com)"
+        android:inputType="textUri|textNoSuggestions"
+        android:paddingHorizontal="12dp"
+        android:singleLine="true"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="13sp"
+        android:layout_marginBottom="18dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/btn_shortcut_cancel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_cancel"
+            android:gravity="center"
+            android:text="Cancel"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:id="@+id/btn_shortcut_save"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_primary"
+            android:gravity="center"
+            android:text="Add"
+            android:textColor="#FF000000"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -44,24 +44,10 @@ public class SearchEngineManager {
         prefs.setSearchEngineId(engineId);
     }
 
+    public static final String HOME_URL = "about:home";
+
     public String getHomeUrl() {
-        SearchEngine engine = getActiveEngine();
-        String id = engine.getId();
-        if (SearchEngine.ID_DUCKDUCKGO.equals(id)) {
-            return "https://duckduckgo.com";
-        } else if (SearchEngine.ID_GOOGLE.equals(id)) {
-            return "https://www.google.com";
-        } else if (SearchEngine.ID_CUSTOM.equals(id)) {
-            String template = engine.getSearchUrlTemplate();
-            try {
-                Uri uri = Uri.parse(template);
-                if (uri.getHost() != null) {
-                    return uri.getScheme() + "://" + uri.getHost();
-                }
-            } catch (Exception ignored) {}
-            return "https://search.brave.com";
-        }
-        return "https://search.brave.com";
+        return HOME_URL;
     }
 
     public void setCustomEngineUrl(String customUrl) {
@@ -151,6 +137,7 @@ public class SearchEngineManager {
 
     public boolean isSearchEnginePage(String currentUrl) {
         if (currentUrl == null) return false;
+        if (HOME_URL.equals(currentUrl) || "about:blank".equals(currentUrl)) return true;
         try {
             Uri uri = Uri.parse(currentUrl);
             String host = uri.getHost();
