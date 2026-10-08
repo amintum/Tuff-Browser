@@ -289,6 +289,15 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 et.post(et::selectAll);
             }
         });
+        et.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s != null && s.length() == 1) {
+                    prefetchSearchHost();
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
         et.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                 String input = et.getText().toString();
@@ -301,8 +310,32 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         });
     }
 
+    private void prefetchSearchHost() {
+        new Thread(() -> {
+            try {
+                String template = engineManager.getActiveEngine().getSearchUrlTemplate();
+                if (template != null && !template.isEmpty()) {
+                    Uri uri = Uri.parse(template);
+                    String host = uri.getHost();
+                    if (host != null && !host.isEmpty()) {
+                        java.net.InetAddress.getAllByName(host);
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }).start();
+    }
+
     private void initHomepage() {
         if (etHomeSearch != null) {
+            etHomeSearch.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s != null && s.length() == 1) {
+                        prefetchSearchHost();
+                    }
+                }
+                @Override public void afterTextChanged(Editable s) {}
+            });
             etHomeSearch.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_GO
                         || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
@@ -568,6 +601,12 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void openCornerEngineSwitcher() {
         CornerEngineSwitcherDialog dialog = new CornerEngineSwitcherDialog(this, engineManager, newEngine -> {
+            // If user is currently on the native homepage, just stay on homepage and inform user
+            if (isHomepageVisible()) {
+                Toast.makeText(this, "Search engine set to " + newEngine.getName(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             TuffWebView wv = getActiveWebView();
             if (wv == null) return;
 
@@ -575,7 +614,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             EditText activeEt = getActiveOmnibox();
             String currentInput = (activeEt != null) ? activeEt.getText().toString().trim() : "";
 
-            // 1. If currently on a search engine results page, switch query to new engine
+            // 1. If currently on a search engine results page, switch query to new engine immediately
             String query = engineManager.extractSearchQuery(currentUrl);
             if (query != null && !query.isEmpty()) {
                 String newSearchUrl = engineManager.buildSearchUrl(query);
@@ -584,14 +623,15 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             }
 
             // 2. If the user had typed an unsubmitted query in the search box
-            if (!currentInput.isEmpty() && !currentInput.startsWith("http://") && !currentInput.startsWith("https://")) {
+            if (!currentInput.isEmpty() && !currentInput.startsWith("http://") && !currentInput.startsWith("https://") && !currentInput.equals("about:home")) {
                 loadQueryOrUrl(currentInput);
                 return;
             }
 
-            // 3. If currently on a home page, blank page, or search engine home page, load new engine home
-            if (currentUrl == null || "about:blank".equals(currentUrl) || engineManager.isSearchEnginePage(currentUrl)) {
-                wv.loadUrl(engineManager.getHomeUrl());
+            // 3. If currently on a home page, blank page, or search engine home page, navigate to home cleanly
+            if (currentUrl == null || "about:blank".equals(currentUrl) || "about:home".equals(currentUrl) || engineManager.isSearchEnginePage(currentUrl)) {
+                navigateHome();
+                Toast.makeText(this, "Default engine: " + newEngine.getName(), Toast.LENGTH_SHORT).show();
                 return;
             }
 

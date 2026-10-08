@@ -46,6 +46,12 @@ public class TuffWebView extends WebView {
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
 
+        // Performance & loading optimizations
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
+        settings.setEnableSmoothTransition(true);
+        settings.setGeolocationEnabled(true);
+
         // Hardware acceleration hints
         setFocusable(true);
         setFocusableInTouchMode(true);
