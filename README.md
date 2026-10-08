@@ -32,6 +32,19 @@ Most mobile browsers are 150 MB+ giants packed with news feeds, crypto wallets, 
 
 ## Key Features
 
+### 🧭 Clean & Ergonomic Interface
+- **Omnibar Position**: Switch between **Bottom** (easy thumb reach) and **Top** with one tap.
+- **Fitted 9-Button Quick Bar**: All essentials fit in a single row without horizontal scrolling:
+  - Back / Forward
+  - Zoom Out / In with floating percentage indicator (e.g. `80% zoom`)
+  - Desktop Site toggle with live active highlight
+  - Download current page
+  - History page
+  - **Fire button** (Nuclear wipe)
+  - Refresh
+  - In-page search ("Find in page") with match counters
+- **Nuclear Data Wipe (🔥)**: One tap closes tabs and wipes cookies, web cache, DOM storage, and history instantly.
+
 ### 📥 Standalone Download Manager
 Unlike browsers that pass links to Android's often-restricted system downloader:
 - **Live Speed**: Shows real-time transfer speed (KB/s, MB/s) and progress percentage.
@@ -43,18 +56,6 @@ Unlike browsers that pass links to Android's often-restricted system downloader:
 - **Modern with Zero Issues**: Full modern web compatibility and hardware-accelerated rendering without bloat, background services, or crashes.
 - **Completely Self-Contained**: Needs no proprietary services or dependencies; runs seamlessly on fully de-googled and clean systems.
 - **Reliable Downloading**: Never breaks even on minimal systems where default system download components are missing or stripped.
-
-### 🧭 Clean & Ergonomic Interface
-- **Omnibar Position**: Switch between **Bottom** (easy thumb reach) and **Top** with one tap.
-- **Fitted 9-Button Quick Bar**: All essentials fit in a single row without horizontal scrolling:
-  - Back / Forward
-  - Zoom Out / In with floating percentage indicator (e.g. `80% zoom`)
-  - Desktop Site toggle with live active highlight
-  - Download current page
-  - **Fire button** (Nuclear wipe)
-  - Refresh
-  - In-page search ("Find in page") with match counters
-- **Nuclear Data Wipe (🔥)**: One tap closes tabs and wipes cookies, web cache, DOM storage, and history instantly.
 
 ### 🛡️ Privacy by Default
 - Choose between **Brave Search**, **DuckDuckGo**, or your own **Custom Search URL**.
