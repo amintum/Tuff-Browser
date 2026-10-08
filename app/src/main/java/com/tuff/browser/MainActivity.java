@@ -318,7 +318,17 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     Uri uri = Uri.parse(template);
                     String host = uri.getHost();
                     if (host != null && !host.isEmpty()) {
+                        // 1. Resolve DNS records in advance
                         java.net.InetAddress.getAllByName(host);
+
+                        // 2. Warm up SSL/TLS handshake socket to eliminate initial connection latency
+                        int port = (uri.getPort() > 0) ? uri.getPort() : ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80);
+                        if ("https".equalsIgnoreCase(uri.getScheme())) {
+                            javax.net.ssl.SSLSocketFactory factory = (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault();
+                            try (java.net.Socket s = factory.createSocket()) {
+                                s.connect(new java.net.InetSocketAddress(host, port), 1200);
+                            }
+                        }
                     }
                 }
             } catch (Throwable ignored) {}
@@ -478,7 +488,17 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             navigateHome();
             return;
         }
-        showHomepage(false);
+        // If not already on homepage, immediately hide homepage;
+        // If on homepage, keep it visible while loading to avoid black/blank screen flash.
+        if (!isHomepageVisible()) {
+            showHomepage(false);
+        } else {
+            // Show top progress bar immediately for visual feedback
+            if (progressBar != null) {
+                progressBar.setProgress(10);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        }
         String resolved = engineManager.resolveInput(input);
         TuffWebView wv = getActiveWebView();
         if (wv != null) {
@@ -712,11 +732,18 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     showHomepage(true);
                     progressBar.setVisibility(View.INVISIBLE);
                 } else {
-                    showHomepage(false);
                     progressBar.setVisibility(View.VISIBLE);
                 }
                 tab.setUrl(url);
                 updateOmniboxText(url);
+            }
+
+            @Override
+            public void onPageCommitVisible(String url) {
+                // First paint ready: smoothly switch from homepage to webview with ZERO blank screen flash
+                if (!"about:home".equals(url)) {
+                    showHomepage(false);
+                }
             }
 
             @Override
@@ -727,6 +754,8 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 }
                 if ("about:home".equals(url)) {
                     showHomepage(true);
+                } else {
+                    showHomepage(false);
                 }
                 tab.setUrl(url);
                 updateOmniboxText(url);
@@ -746,6 +775,11 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     progressBar.setVisibility(View.INVISIBLE);
                 } else {
                     progressBar.setVisibility(View.VISIBLE);
+                }
+                // If page reaches >= 25% loaded, ensure homepage is hidden
+                String currentTabUrl = tab.getUrl();
+                if (progress >= 25 && !"about:home".equals(currentTabUrl)) {
+                    showHomepage(false);
                 }
             }
 
