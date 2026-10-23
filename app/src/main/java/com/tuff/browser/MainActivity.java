@@ -226,12 +226,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         // Swipe-down-to-refresh with circular indicator
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            TuffWebView wv = getActiveWebView();
-            if (wv != null) {
-                wv.reload();
-            } else {
-                swipeRefreshLayout.setRefreshing(false);
-            }
+            reloadActivePage();
         });
         swipeRefreshLayout.setOnChildScrollUpCallback((parent, child) -> {
             TuffWebView wv = getActiveWebView();
@@ -651,6 +646,29 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     snackbar.show();
                 }
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                        @Override
+                        public void onAvailable(@NonNull Network network) {
+                            runOnUiThread(() -> {
+                                TuffWebView wv = getActiveWebView();
+                                if (wv != null) {
+                                    String url = wv.getUrl();
+                                    if (url != null && url.startsWith("file:///android_asset/offline.html")) {
+                                        Uri uri = Uri.parse(url);
+                                        String target = uri.getQueryParameter("target");
+                                        if (target != null && !target.isEmpty()) {
+                                            wv.loadUrl(target);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } catch (Exception ignored) {}
+            }
         }
     }
 
@@ -872,9 +890,35 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         }
     }
 
+    private void reloadActivePage() {
+        TuffWebView wv = getActiveWebView();
+        if (wv != null) {
+            String currentUrl = wv.getUrl();
+            if (currentUrl != null && currentUrl.startsWith("file:///android_asset/offline.html")) {
+                Uri uri = Uri.parse(currentUrl);
+                String target = uri.getQueryParameter("target");
+                if (target != null && !target.isEmpty()) {
+                    wv.loadUrl(target);
+                    return;
+                }
+            }
+            wv.reload();
+        } else if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
     private void updateOmniboxText(String url) {
         if (etOmnibox != null) {
-            etOmnibox.setText((url == null || "about:blank".equals(url) || "about:home".equals(url)) ? "" : url);
+            if (url == null || "about:blank".equals(url) || "about:home".equals(url)) {
+                etOmnibox.setText("");
+            } else if (url.startsWith("file:///android_asset/offline.html")) {
+                Uri uri = Uri.parse(url);
+                String target = uri.getQueryParameter("target");
+                etOmnibox.setText(target != null ? target : "");
+            } else {
+                etOmnibox.setText(url);
+            }
         }
     }
 
@@ -986,7 +1030,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         if (btnRefresh != null) {
             btnRefresh.setOnClickListener(v -> {
                 menuDialog.dismiss();
-                if (wv != null) wv.reload();
+                reloadActivePage();
             });
         }
 

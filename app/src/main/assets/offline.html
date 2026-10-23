@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Offline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #080A0E;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: #FFFFFF;
+    touch-action: none;
+  }
+  #canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+  .sky-presentation {
+    position: absolute;
+    top: 14%;
+    left: 20px;
+    right: 20px;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tuff-logo-svg {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 14px;
+    filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.45)) drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  }
+  .sky-sub-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3.5px;
+    color: #FFA86A;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 14px rgba(255, 168, 106, 0.4);
+  }
+  .sky-headline {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85), 0 0 26px rgba(255, 139, 167, 0.35);
+  }
+  .sky-caption {
+    font-size: 13.5px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+    max-width: 300px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .sky-caption:active {
+    opacity: 0.65;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="sky-presentation">
+  <!-- Tuff Browser Official Logo -->
+  <svg class="tuff-logo-svg" viewBox="0 0 108 108" fill="none">
+    <circle cx="54" cy="54" r="34.5" stroke="#FFFFFF" stroke-width="2.4" />
+    <ellipse cx="54" cy="54" rx="15" ry="34.5" stroke="#00E5FF" stroke-width="1.5" stroke-opacity="0.65" />
+    <line x1="54" y1="19.5" x2="54" y2="88.5" stroke="#00E5FF" stroke-width="1.3" stroke-opacity="0.45" />
+    <path d="M24,36a30,8 0 0,0 60,0" stroke="#00E5FF" stroke-width="1.3" stroke-opacity="0.5" />
+    <path d="M24,72a30,8 0 0,1 60,0" stroke="#00E5FF" stroke-width="1.3" stroke-opacity="0.5" />
+    <path fill="#FFFFFF" d="M32.12 59.64Q31.50 59.96 30.27 59.96Q27.34 59.96 27.34 56.92V52.81H25.88V50.77H27.34V48.83L30.10 48.04V50.77H32.12V52.81H30.10V56.44Q30.10 57.84 31.21 57.84Q31.65 57.84 32.12 57.59Z M50.83 58.38H48.07V57.01H48.03Q47.00 58.60 45.29 58.60Q42.17 58.60 42.17 54.82V49.40H44.93V54.57Q44.93 56.48 46.43 56.48Q47.18 56.48 47.63 55.95Q48.07 55.43 48.07 54.54V49.40H50.83Z M64.81 49.58Q64.28 49.37 63.79 49.37Q62.46 49.37 62.46 50.82V51.77H64.51V53.82H62.46V60.75H59.69V53.82H58.19V51.77H59.69V50.66Q59.69 49.13 60.69 48.19Q61.69 47.25 63.41 47.25Q64.25 47.25 64.81 47.43Z M82.31 49.58Q81.78 49.37 81.29 49.37Q79.96 49.37 79.96 50.82V51.77H82.01V53.82H79.96V60.75H77.19V53.82H75.69V51.77H77.19V50.66Q77.19 49.13 78.19 48.19Q79.19 47.25 80.91 47.25Q81.75 47.25 82.31 47.43Z" />
+  </svg>
+
+  <div class="sky-sub-tag">TUFF BROWSER // OFFLINE</div>
+  <h2 class="sky-headline">No Internet Connection</h2>
+  <p class="sky-caption" onclick="retryNavigation()" title="Tap to refresh">Please check your connection and refresh the page.</p>
+</div>
+
+<script>
+  function retryNavigation() {
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('target');
+    if (target) {
+      window.location.href = target;
+    } else {
+      window.location.reload();
+    }
+  }
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let width = 0, height = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const petals = [];
+  const PETAL_COUNT = 38;
+  for (let i = 0; i < PETAL_COUNT; i++) {
+    const baseVx = 0.8 + Math.random() * 1.4;
+    const baseVy = 0.9 + Math.random() * 1.2;
+    petals.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: 7 + Math.random() * 8,
+      baseVx: baseVx,
+      baseVy: baseVy,
+      vx: baseVx,
+      vy: baseVy,
+      rotX: Math.random() * Math.PI,
+      rotY: Math.random() * Math.PI,
+      vRotX: 0.02 + Math.random() * 0.03,
+      vRotY: 0.015 + Math.random() * 0.025,
+      color: Math.random() > 0.4 ? '#FFB2C8' : '#FFA1BA'
+    });
+  }
+
+  let comet = { x: -80, y: -40, vx: 4.8, vy: 3.2, active: false, timer: 30, tail: [] };
+
+  function render(time) {
+    const w = width, h = height;
+
+    // 1. Shinkai Twilight Sky Gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0.0, '#10142A');
+    sky.addColorStop(0.28, '#242456');
+    sky.addColorStop(0.55, '#683668');
+    sky.addColorStop(0.78, '#B84D55');
+    sky.addColorStop(0.92, '#E88258');
+    sky.addColorStop(1.0, '#FFA86A');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    // Stars
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 28; i++) {
+      const sx = (i * 47) % w;
+      const sy = (i * 29) % (h * 0.45);
+      const twinkle = 0.4 + 0.6 * Math.sin(time * 0.003 + i);
+      ctx.globalAlpha = twinkle;
+      ctx.fillRect(sx, sy, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1.0;
+
+    // 2. Comet / Meteor
+    comet.timer--;
+    if (comet.timer <= 0 && !comet.active) {
+      comet.active = true;
+      comet.x = 20 + Math.random() * (w * 0.4);
+      comet.y = 10 + Math.random() * (h * 0.15);
+      comet.vx = 4.2 + Math.random() * 1.5;
+      comet.vy = 2.4 + Math.random() * 1.0;
+      comet.tail = [];
+    }
+
+    if (comet.active) {
+      comet.x += comet.vx;
+      comet.y += comet.vy;
+      comet.tail.unshift({ x: comet.x, y: comet.y });
+      if (comet.tail.length > 28) comet.tail.pop();
+
+      for (let t = 0; t < comet.tail.length; t++) {
+        const pt = comet.tail[t];
+        const progress = 1 - t / comet.tail.length;
+        ctx.fillStyle = t < 5 ? '#FFFFFF' : (t % 2 === 0 ? '#00E5FF' : '#FF8BA7');
+        ctx.globalAlpha = progress * 0.9;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, (1 - t / comet.tail.length) * 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = '#00E5FF';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(comet.x, comet.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      if (comet.x > w + 60 || comet.y > h * 0.6) {
+        comet.active = false;
+        comet.timer = 180 + Math.floor(Math.random() * 140);
+      }
+    }
+
+    // 3. Clouds
+    ctx.fillStyle = 'rgba(75, 40, 75, 0.45)';
+    ctx.beginPath();
+    ctx.arc(w * 0.22, h * 0.58, 70, 0, Math.PI * 2);
+    ctx.arc(w * 0.48, h * 0.55, 95, 0, Math.PI * 2);
+    ctx.arc(w * 0.8, h * 0.59, 80, 0, Math.PI * 2);
+    ctx.fill();
+
+    const cloudGrad = ctx.createLinearGradient(0, h * 0.52, 0, h * 0.7);
+    cloudGrad.addColorStop(0, 'rgba(255, 175, 120, 0.5)');
+    cloudGrad.addColorStop(0.3, 'rgba(180, 70, 95, 0.6)');
+    cloudGrad.addColorStop(1, 'rgba(40, 25, 45, 0.85)');
+    ctx.fillStyle = cloudGrad;
+    ctx.beginPath();
+    ctx.arc(w * 0.1, h * 0.64, 60, 0, Math.PI * 2);
+    ctx.arc(w * 0.36, h * 0.61, 85, 0, Math.PI * 2);
+    ctx.arc(w * 0.65, h * 0.63, 75, 0, Math.PI * 2);
+    ctx.arc(w * 0.9, h * 0.66, 65, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Transmission Tower Silhouettes
+    ctx.strokeStyle = '#181A26';
+    ctx.lineWidth = 1.6;
+    const tx = w * 0.78, ty = h * 0.72;
+    ctx.beginPath();
+    ctx.moveTo(tx - 12, ty);
+    ctx.lineTo(tx, ty - 65);
+    ctx.lineTo(tx + 12, ty);
+    ctx.moveTo(tx - 16, ty - 45);
+    ctx.lineTo(tx + 16, ty - 45);
+    ctx.moveTo(tx - 12, ty - 25);
+    ctx.lineTo(tx + 12, ty - 25);
+    ctx.moveTo(tx, ty - 45);
+    ctx.quadraticCurveTo(w * 0.5, ty - 30, 0, ty - 50);
+    ctx.stroke();
+
+    // 5. Horizon Meadow
+    ctx.fillStyle = '#0F121C';
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.74);
+    ctx.quadraticCurveTo(w * 0.4, h * 0.71, w, h * 0.75);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // 6. Tumbling 3D Sakura Petals
+    const ambientWind = Math.sin(time * 0.002) * 0.6;
+    for (const p of petals) {
+      p.vx = p.vx * 0.965 + p.baseVx * 0.035;
+      p.vy = p.vy * 0.965 + p.baseVy * 0.035;
+
+      p.x += p.vx + ambientWind;
+      p.y += p.vy;
+      p.rotX += p.vRotX;
+      p.rotY += p.vRotY;
+
+      if (p.x > w + 20) p.x = -20;
+      if (p.y > h + 20) { p.y = -20; p.x = Math.random() * w; }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      const scaleX = Math.cos(p.rotX);
+      const scaleY = Math.sin(p.rotY);
+      ctx.scale(scaleX, scaleY);
+
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.moveTo(0, -p.size * 0.6);
+      ctx.bezierCurveTo(p.size * 0.7, -p.size * 0.4, p.size * 0.8, p.size * 0.5, 0, p.size * 0.8);
+      ctx.bezierCurveTo(-p.size * 0.8, p.size * 0.5, -p.size * 0.7, -p.size * 0.4, 0, -p.size * 0.6);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.size * 0.25, p.size * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  // Interactive Wind Gusts on tap / swipe / drag
+  let lastX = null, lastY = null;
+  let isDown = false;
+
+  function applyWind(px, py, vx = 0, vy = 0) {
+    for (const p of petals) {
+      const dx = p.x - px;
+      const dy = p.y - py;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 180) {
+        const force = (1 - dist / 180);
+        p.vx += (dx / (dist + 1)) * 4.2 * force + vx * 0.45;
+        p.vy += (dy / (dist + 1)) * 4.2 * force + vy * 0.45;
+        p.vRotX += (Math.random() - 0.5) * 0.3;
+        p.vRotY += (Math.random() - 0.5) * 0.3;
+      }
+    }
+  }
+
+  window.addEventListener('pointerdown', e => {
+    isDown = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    applyWind(e.clientX, e.clientY, 0, 0);
+  });
+
+  window.addEventListener('pointermove', e => {
+    if (!isDown) return;
+    const vx = lastX !== null ? (e.clientX - lastX) : 0;
+    const vy = lastY !== null ? (e.clientY - lastY) : 0;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    applyWind(e.clientX, e.clientY, vx, vy);
+  });
+
+  window.addEventListener('pointerup', () => {
+    isDown = false;
+    lastX = null;
+    lastY = null;
+  });
+
+  requestAnimationFrame(render);
+</script>
+</body>
+</html>

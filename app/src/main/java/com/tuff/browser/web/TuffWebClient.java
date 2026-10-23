@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
+import android.webkit.WebResourceError;
 import android.webkit.WebViewClient;
+import java.net.URLEncoder;
 
 public class TuffWebClient extends WebViewClient {
 
@@ -66,6 +68,32 @@ public class TuffWebClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         Uri uri = Uri.parse(url);
         return handleCustomUri(uri);
+    }
+
+    @Override
+    public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+        super.onReceivedError(view, request, error);
+        if (request != null && request.isForMainFrame()) {
+            handleOfflineError(view, request.getUrl() != null ? request.getUrl().toString() : null);
+        }
+    }
+
+    @Override
+    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+        super.onReceivedError(view, errorCode, description, failingUrl);
+        handleOfflineError(view, failingUrl);
+    }
+
+    private void handleOfflineError(WebView view, String failingUrl) {
+        if (failingUrl == null || failingUrl.startsWith("file:///android_asset/offline.html") || failingUrl.startsWith("about:")) {
+            return;
+        }
+        try {
+            String encoded = URLEncoder.encode(failingUrl, "UTF-8");
+            view.loadUrl("file:///android_asset/offline.html?target=" + encoded);
+        } catch (Exception e) {
+            view.loadUrl("file:///android_asset/offline.html");
+        }
     }
 
     private boolean handleCustomUri(Uri uri) {
