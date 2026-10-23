@@ -114,20 +114,11 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         applySearchBarPosition();
         checkNetworkStatus();
 
-        Intent intent = getIntent();
-        String startUrl = engineManager.getHomeUrl();
-        if (intent != null && intent.getData() != null) {
-            startUrl = intent.getData().toString();
-        }
-        tabManager.createTab(startUrl);
+        handleIncomingIntent(getIntent(), true);
 
         // Check first launch
         if (prefs.isFirstLaunch()) {
             showOnboarding();
-        }
-
-        if (intent != null && intent.getBooleanExtra("open_downloads", false)) {
-            new DownloadManagerSheet(this).show();
         }
     }
 
@@ -135,8 +126,48 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (intent != null && intent.getBooleanExtra("open_downloads", false)) {
+        handleIncomingIntent(intent, false);
+    }
+
+    private void handleIncomingIntent(Intent intent, boolean isColdStart) {
+        if (intent == null) {
+            if (isColdStart && tabManager.getTabs().isEmpty()) {
+                tabManager.createTab(engineManager.getHomeUrl());
+            }
+            return;
+        }
+
+        if (intent.getBooleanExtra("open_downloads", false)) {
             new DownloadManagerSheet(this).show();
+        }
+
+        Uri data = intent.getData();
+        String url = (data != null) ? data.toString().trim() : null;
+        if (url == null && Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
+            String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (sharedText != null && !sharedText.trim().isEmpty()) {
+                url = sharedText.trim();
+            }
+        }
+
+        if (url != null && !url.isEmpty()) {
+            if (isColdStart) {
+                tabManager.createTab(url);
+                showHomepage(false);
+            } else {
+                TabModel current = tabManager.getCurrentTab();
+                if (current != null && ("about:home".equals(current.getUrl()) || "about:blank".equals(current.getUrl()) || isHomepageVisible())) {
+                    loadQueryOrUrl(url);
+                } else {
+                    tabManager.createTab(url);
+                    showHomepage(false);
+                }
+            }
+            return;
+        }
+
+        if (isColdStart && tabManager.getTabs().isEmpty()) {
+            tabManager.createTab(engineManager.getHomeUrl());
         }
     }
 
@@ -559,12 +590,16 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             @Override
             public void onRequestPermissions() {
                 requestEssentialPermissions();
-                navigateHome();
+                if (isHomepageVisible()) {
+                    navigateHome();
+                }
             }
 
             @Override
             public void onDismissed() {
-                navigateHome();
+                if (isHomepageVisible()) {
+                    navigateHome();
+                }
             }
         });
         dialog.show();
