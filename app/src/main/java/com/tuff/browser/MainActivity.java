@@ -59,6 +59,9 @@ import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
 import com.tuff.browser.tab.SavedTab;
+import com.tuff.browser.tab.TabStateStore;
+import android.graphics.Bitmap;
+import android.webkit.WebSettings;
 import com.tuff.browser.history.HistoryDbHelper;
 import com.tuff.browser.history.HistoryItem;
 import com.tuff.browser.download.DownloadRepository;
@@ -75,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private TabManager tabManager;
 
     private FrameLayout webViewContainer;
+    private ImageView ivTabPreview;
+    private boolean isColdStartActive = true;
     private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -201,6 +206,15 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private void saveCurrentTabsState() {
         if (prefs != null && tabManager != null) {
             prefs.saveOpenTabs(tabManager.getTabs(), tabManager.getCurrentTabIndex());
+            TuffWebView activeWv = getActiveWebView();
+            TabModel current = tabManager.getCurrentTab();
+            if (activeWv != null && current != null) {
+                String url = current.getUrl();
+                if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
+                    TabStateStore.saveTabPreview(this, activeWv);
+                    TabStateStore.saveWebViewState(this, activeWv);
+                }
+            }
         }
     }
 
@@ -239,6 +253,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void initViews() {
         webViewContainer = findViewById(R.id.webview_container);
+        ivTabPreview = findViewById(R.id.iv_tab_preview);
         progressBar = findViewById(R.id.progress_loading);
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
@@ -805,11 +820,22 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         String url = tab.getUrl();
         if ("about:home".equals(url) || "about:blank".equals(url) || url == null || url.isEmpty()) {
+            hideTabPreview();
             navigateHome();
         } else {
             showHomepage(false);
             if (webView.getUrl() == null) {
-                webView.loadUrl(url);
+                if (isColdStartActive) {
+                    showTabPreviewIfAvailable();
+                    // Load from cache first for zero reload delay
+                    webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+                    boolean restored = TabStateStore.restoreWebViewState(this, webView);
+                    if (!restored) {
+                        webView.loadUrl(url);
+                    }
+                } else {
+                    webView.loadUrl(url);
+                }
             }
             updateOmniboxText(url);
         }
@@ -843,6 +869,8 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 if (!"about:home".equals(url)) {
                     showHomepage(false);
                 }
+                hideTabPreview();
+                wv.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
             }
 
             @Override
@@ -1284,6 +1312,31 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         historyDialog.show();
     }
 
+    private void showTabPreviewIfAvailable() {
+        if (ivTabPreview != null) {
+            Bitmap preview = TabStateStore.getTabPreview(this);
+            if (preview != null) {
+                ivTabPreview.setImageBitmap(preview);
+                ivTabPreview.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private void hideTabPreview() {
+        isColdStartActive = false;
+        if (ivTabPreview != null && ivTabPreview.getVisibility() == View.VISIBLE) {
+            ivTabPreview.animate()
+                    .alpha(0f)
+                    .setDuration(200)
+                    .withEndAction(() -> {
+                        ivTabPreview.setVisibility(View.GONE);
+                        ivTabPreview.setAlpha(1f);
+                        ivTabPreview.setImageBitmap(null);
+                    })
+                    .start();
+        }
+    }
+
     private void hideKeyboard(View view) {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -1330,6 +1383,8 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         HistoryDbHelper.getInstance(this).clearHistory();
         DownloadRepository.getInstance().clearAll();
         prefs.clearSavedOpenTabs();
+        TabStateStore.clearState(this);
+        hideTabPreview();
 
         tabManager.closeAllTabs();
         navigateHome();

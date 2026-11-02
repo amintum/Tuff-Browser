@@ -108,6 +108,15 @@
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+        <!-- INSTANT TAB PREVIEW OVERLAY -->
+        <ImageView
+            android:id="@+id/iv_tab_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitStart"
+            android:visibility="gone"
+            android:background="@color/homepage_bg" />
+
         <!-- NATIVE HOMEPAGE CONTAINER (Shown on about:home) -->
         <ScrollView
             android:id="@+id/container_homepage"
