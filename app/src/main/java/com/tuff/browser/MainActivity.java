@@ -206,14 +206,18 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private void saveCurrentTabsState() {
         if (prefs != null && tabManager != null) {
             prefs.saveOpenTabs(tabManager.getTabs(), tabManager.getCurrentTabIndex());
-            TuffWebView activeWv = getActiveWebView();
-            TabModel current = tabManager.getCurrentTab();
-            if (activeWv != null && current != null) {
-                String url = current.getUrl();
-                if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
-                    TabStateStore.saveTabPreview(this, activeWv);
-                    TabStateStore.saveWebViewState(this, activeWv);
-                }
+        }
+    }
+
+    private void saveActiveTabSnapshot() {
+        if (tabManager == null) return;
+        TuffWebView activeWv = getActiveWebView();
+        TabModel current = tabManager.getCurrentTab();
+        if (activeWv != null && current != null) {
+            String url = current.getUrl();
+            if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
+                TabStateStore.saveTabPreview(this, activeWv);
+                TabStateStore.saveWebViewState(this, activeWv);
             }
         }
     }
@@ -222,12 +226,14 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     protected void onPause() {
         super.onPause();
         saveCurrentTabsState();
+        saveActiveTabSnapshot();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         saveCurrentTabsState();
+        saveActiveTabSnapshot();
     }
 
     @Override
@@ -879,6 +885,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 if (swipeRefreshLayout != null) {
                     swipeRefreshLayout.setRefreshing(false);
                 }
+                if (isColdStartActive) {
+                    hideTabPreview();
+                }
                 if ("about:home".equals(url)) {
                     showHomepage(true);
                 } else {
@@ -1324,6 +1333,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
     private void hideTabPreview() {
         isColdStartActive = false;
+        TabStateStore.clearState(this);
         if (ivTabPreview != null && ivTabPreview.getVisibility() == View.VISIBLE) {
             ivTabPreview.animate()
                     .alpha(0f)
