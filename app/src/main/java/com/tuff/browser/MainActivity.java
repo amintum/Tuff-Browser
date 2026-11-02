@@ -58,6 +58,9 @@ import android.view.ViewGroup;
 import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
+import com.tuff.browser.history.HistoryDbHelper;
+import com.tuff.browser.history.HistoryItem;
+import com.tuff.browser.download.DownloadRepository;
 import com.tuff.browser.util.Prefs;
 import com.tuff.browser.util.ShortcutModel;
 import com.tuff.browser.web.TuffChromeClient;
@@ -812,11 +815,19 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 }
                 tab.setUrl(url);
                 updateOmniboxText(url);
+                if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
+                    String title = tab.getTitle();
+                    HistoryDbHelper.getInstance(MainActivity.this).addOrUpdateHistory(title, url);
+                }
             }
 
             @Override
             public void onTitleUpdated(String title) {
                 tab.setTitle(title);
+                String url = tab.getUrl();
+                if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
+                    HistoryDbHelper.getInstance(MainActivity.this).addOrUpdateHistory(title, url);
+                }
             }
         }));
 
@@ -1174,28 +1185,19 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         View view = getLayoutInflater().inflate(R.layout.dialog_history, null);
         historyDialog.setContentView(view);
 
-        android.webkit.WebBackForwardList historyList = wv.copyBackForwardList();
-        int count = historyList != null ? historyList.getSize() : 0;
-
         TextView tvNoHistory = view.findViewById(R.id.tv_no_history);
         androidx.recyclerview.widget.RecyclerView rvHistory = view.findViewById(R.id.rv_history);
         View btnClear = view.findViewById(R.id.btn_clear_history);
 
-        if (count == 0) {
+        List<HistoryItem> items = HistoryDbHelper.getInstance(this).getHistory(200);
+
+        if (items.isEmpty()) {
             tvNoHistory.setVisibility(View.VISIBLE);
             rvHistory.setVisibility(View.GONE);
         } else {
             tvNoHistory.setVisibility(View.GONE);
             rvHistory.setVisibility(View.VISIBLE);
             rvHistory.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
-
-            List<android.webkit.WebHistoryItem> items = new ArrayList<>();
-            for (int i = count - 1; i >= 0; i--) {
-                android.webkit.WebHistoryItem item = historyList.getItemAtIndex(i);
-                if (item != null && item.getUrl() != null && !item.getUrl().isEmpty()) {
-                    items.add(item);
-                }
-            }
 
             rvHistory.setAdapter(new androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
                 @NonNull
@@ -1207,7 +1209,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
                 @Override
                 public void onBindViewHolder(@NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
-                    android.webkit.WebHistoryItem item = items.get(position);
+                    HistoryItem item = items.get(position);
                     TextView title = holder.itemView.findViewById(R.id.tv_history_title);
                     TextView url = holder.itemView.findViewById(R.id.tv_history_url);
                     String itemTitle = item.getTitle();
@@ -1215,7 +1217,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     url.setText(item.getUrl());
                     holder.itemView.setOnClickListener(v -> {
                         historyDialog.dismiss();
-                        wv.loadUrl(item.getUrl());
+                        loadQueryOrUrl(item.getUrl());
                     });
                 }
 
@@ -1227,6 +1229,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
         }
 
         btnClear.setOnClickListener(v -> {
+            HistoryDbHelper.getInstance(this).clearHistory();
             wv.clearHistory();
             historyDialog.dismiss();
             Toast.makeText(MainActivity.this, "History cleared", Toast.LENGTH_SHORT).show();
@@ -1277,6 +1280,9 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 tab.getWebView().clearSslPreferences();
             }
         }
+
+        HistoryDbHelper.getInstance(this).clearHistory();
+        DownloadRepository.getInstance().clearAll();
 
         tabManager.closeAllTabs();
         navigateHome();

@@ -5,6 +5,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 
+import com.tuff.browser.download.DownloadRepository;
+
 public class TuffApp extends Application {
 
     public static final String CHANNEL_DOWNLOADS = "tuff_downloads_channel";
@@ -12,6 +14,7 @@ public class TuffApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        DownloadRepository.getInstance().init(this);
         createNotificationChannels();
     }
 

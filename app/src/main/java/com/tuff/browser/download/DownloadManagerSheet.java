@@ -33,6 +33,7 @@ public class DownloadManagerSheet extends BottomSheetDialog implements DownloadR
     public DownloadManagerSheet(@NonNull Context context) {
         super(context);
         this.repository = DownloadRepository.getInstance();
+        this.repository.init(context);
     }
 
     @Override
