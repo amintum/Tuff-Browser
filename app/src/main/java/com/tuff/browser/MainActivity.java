@@ -58,6 +58,7 @@ import android.view.ViewGroup;
 import com.tuff.browser.tab.TabManager;
 import com.tuff.browser.tab.TabModel;
 import com.tuff.browser.tab.TabSheetDialog;
+import com.tuff.browser.tab.SavedTab;
 import com.tuff.browser.history.HistoryDbHelper;
 import com.tuff.browser.history.HistoryItem;
 import com.tuff.browser.download.DownloadRepository;
@@ -133,10 +134,21 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void handleIncomingIntent(Intent intent, boolean isColdStart) {
+        if (isColdStart && tabManager.getTabs().isEmpty()) {
+            List<SavedTab> savedTabs = prefs.getSavedOpenTabs();
+            if (!savedTabs.isEmpty()) {
+                for (SavedTab st : savedTabs) {
+                    tabManager.restoreTab(st.getUrl(), st.getTitle());
+                }
+                tabManager.finishRestore(prefs.getSavedActiveTabIndex());
+            }
+        }
+
         if (intent == null) {
             if (isColdStart && tabManager.getTabs().isEmpty()) {
                 tabManager.createTab(engineManager.getHomeUrl());
             }
+            saveCurrentTabsState();
             return;
         }
 
@@ -155,8 +167,18 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         if (url != null && !url.isEmpty()) {
             if (isColdStart) {
-                tabManager.createTab(url);
-                showHomepage(false);
+                if (tabManager.getTabs().isEmpty()) {
+                    tabManager.createTab(url);
+                    showHomepage(false);
+                } else {
+                    TabModel current = tabManager.getCurrentTab();
+                    if (current != null && ("about:home".equals(current.getUrl()) || "about:blank".equals(current.getUrl()) || isHomepageVisible())) {
+                        loadQueryOrUrl(url);
+                    } else {
+                        tabManager.createTab(url);
+                        showHomepage(false);
+                    }
+                }
             } else {
                 TabModel current = tabManager.getCurrentTab();
                 if (current != null && ("about:home".equals(current.getUrl()) || "about:blank".equals(current.getUrl()) || isHomepageVisible())) {
@@ -166,12 +188,32 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     showHomepage(false);
                 }
             }
+            saveCurrentTabsState();
             return;
         }
 
         if (isColdStart && tabManager.getTabs().isEmpty()) {
             tabManager.createTab(engineManager.getHomeUrl());
         }
+        saveCurrentTabsState();
+    }
+
+    private void saveCurrentTabsState() {
+        if (prefs != null && tabManager != null) {
+            prefs.saveOpenTabs(tabManager.getTabs(), tabManager.getCurrentTabIndex());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveCurrentTabsState();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        saveCurrentTabsState();
     }
 
     @Override
@@ -771,6 +813,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             }
             updateOmniboxText(url);
         }
+        saveCurrentTabsState();
     }
 
     @Override
@@ -819,6 +862,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     String title = tab.getTitle();
                     HistoryDbHelper.getInstance(MainActivity.this).addOrUpdateHistory(title, url);
                 }
+                saveCurrentTabsState();
             }
 
             @Override
@@ -828,6 +872,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                 if (url != null && !url.isEmpty() && !"about:home".equals(url) && !"about:blank".equals(url) && !url.startsWith("file:///android_asset/")) {
                     HistoryDbHelper.getInstance(MainActivity.this).addOrUpdateHistory(title, url);
                 }
+                saveCurrentTabsState();
             }
         }));
 
@@ -950,6 +995,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
             public void onCloseAllTabs() {
                 tabManager.closeAllTabs();
                 navigateHome();
+                saveCurrentTabsState();
             }
         });
         dialog.show();
@@ -1283,6 +1329,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
 
         HistoryDbHelper.getInstance(this).clearHistory();
         DownloadRepository.getInstance().clearAll();
+        prefs.clearSavedOpenTabs();
 
         tabManager.closeAllTabs();
         navigateHome();

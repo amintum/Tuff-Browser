@@ -46,9 +46,13 @@ public class TabManager {
     }
 
     public TabModel createTab(String initialUrl) {
+        return createTab(initialUrl, "New Tab");
+    }
+
+    public TabModel createTab(String initialUrl, String title) {
         String id = UUID.randomUUID().toString();
         TuffWebView webView = new TuffWebView(context);
-        TabModel tab = new TabModel(id, "New Tab", initialUrl, webView);
+        TabModel tab = new TabModel(id, (title != null && !title.isEmpty()) ? title : "New Tab", initialUrl, webView);
         tabs.add(tab);
         currentTabIndex = tabs.size() - 1;
 
@@ -57,6 +61,30 @@ public class TabManager {
             listener.onTabSwitched(tab, currentTabIndex);
         }
         return tab;
+    }
+
+    public void restoreTab(String url, String title) {
+        String id = UUID.randomUUID().toString();
+        TuffWebView webView = new TuffWebView(context);
+        TabModel tab = new TabModel(id, (title != null && !title.isEmpty()) ? title : "New Tab", url, webView);
+        tabs.add(tab);
+    }
+
+    public void finishRestore(int activeIndex) {
+        if (tabs.isEmpty()) {
+            createTab("about:home");
+            return;
+        }
+        if (activeIndex < 0 || activeIndex >= tabs.size()) {
+            currentTabIndex = 0;
+        } else {
+            currentTabIndex = activeIndex;
+        }
+
+        if (listener != null) {
+            listener.onTabCountChanged(tabs.size());
+            listener.onTabSwitched(tabs.get(currentTabIndex), currentTabIndex);
+        }
     }
 
     public void switchTab(int index) {

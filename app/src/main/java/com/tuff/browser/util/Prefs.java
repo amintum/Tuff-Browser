@@ -6,6 +6,10 @@ import android.content.SharedPreferences;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.tuff.browser.tab.SavedTab;
+import com.tuff.browser.tab.TabModel;
 
 public class Prefs {
     private static final String PREF_NAME = "tuff_preferences";
@@ -16,6 +20,8 @@ public class Prefs {
     private static final String KEY_SEARCH_BAR_POSITION = "key_search_bar_position";
     private static final String KEY_DESKTOP_MODE = "key_desktop_mode";
     private static final String KEY_HOMEPAGE_SHORTCUTS = "key_homepage_shortcuts";
+    private static final String KEY_SAVED_TABS = "key_saved_tabs";
+    private static final String KEY_SAVED_ACTIVE_TAB_INDEX = "key_saved_active_tab_index";
 
     public static final String POSITION_TOP = "top";
     public static final String POSITION_BOTTOM = "bottom";
@@ -89,5 +95,47 @@ public class Prefs {
             }
         }
         prefs.edit().putString(KEY_HOMEPAGE_SHORTCUTS, arr.toString()).apply();
+    }
+
+    public void saveOpenTabs(List<TabModel> tabs, int activeIndex) {
+        JSONArray arr = new JSONArray();
+        if (tabs != null) {
+            for (TabModel t : tabs) {
+                if (t != null) {
+                    SavedTab st = new SavedTab(t.getTitle(), t.getUrl());
+                    arr.put(st.toJson());
+                }
+            }
+        }
+        prefs.edit()
+                .putString(KEY_SAVED_TABS, arr.toString())
+                .putInt(KEY_SAVED_ACTIVE_TAB_INDEX, Math.max(0, activeIndex))
+                .apply();
+    }
+
+    public List<SavedTab> getSavedOpenTabs() {
+        List<SavedTab> list = new ArrayList<>();
+        String jsonStr = prefs.getString(KEY_SAVED_TABS, "[]");
+        try {
+            JSONArray arr = new JSONArray(jsonStr);
+            for (int i = 0; i < arr.length(); i++) {
+                SavedTab tab = SavedTab.fromJson(arr.getJSONObject(i));
+                if (tab != null && !tab.getUrl().isEmpty()) {
+                    list.add(tab);
+                }
+            }
+        } catch (Exception ignored) {}
+        return list;
+    }
+
+    public int getSavedActiveTabIndex() {
+        return prefs.getInt(KEY_SAVED_ACTIVE_TAB_INDEX, 0);
+    }
+
+    public void clearSavedOpenTabs() {
+        prefs.edit()
+                .remove(KEY_SAVED_TABS)
+                .remove(KEY_SAVED_ACTIVE_TAB_INDEX)
+                .apply();
     }
 }
