@@ -4,12 +4,12 @@ import android.content.Context;
 import android.net.Uri;
 import com.tuff.browser.util.Prefs;
 
-import android.util.Patterns;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SearchEngineManager {
     private final Prefs prefs;
@@ -87,6 +87,9 @@ public class SearchEngineManager {
 
         // Check if web domain / IP address (e.g. google.com, example.org/test, 192.168.1.1)
         if (isDomain(trimmed)) {
+            if (trimmed.startsWith("localhost")) {
+                return "http://" + trimmed;
+            }
             return "https://" + trimmed;
         }
 
@@ -149,7 +152,15 @@ public class SearchEngineManager {
         }
     }
 
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile(
+            "^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}(?::\\d{1,5})?(?:/[^\\s]*)?$|" +
+            "^(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d{1,5})?(?:/[^\\s]*)?$|" +
+            "^localhost(?::\\d{1,5})?(?:/[^\\s]*)?$",
+            Pattern.CASE_INSENSITIVE
+    );
+
     private boolean isDomain(String text) {
-        return !text.contains(" ") && (Patterns.WEB_URL.matcher(text).matches() || text.contains("."));
+        if (text == null || text.contains(" ")) return false;
+        return DOMAIN_PATTERN.matcher(text).matches();
     }
 }
