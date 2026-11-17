@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.Editable;
@@ -31,7 +32,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -100,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     private ImageView btnFindClose;
 
     // Native Homepage Views
-    private View containerHomepage;
+    private ScrollView containerHomepage;
     private EditText etHomeSearch;
     private View btnHomeAddShortcut;
     private View btnHomeDownloads;
@@ -437,6 +441,16 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
                     }
                 }
                 @Override public void afterTextChanged(Editable s) {}
+            });
+            etHomeSearch.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && containerHomepage != null) {
+                    containerHomepage.post(() -> {
+                        View searchLayout = findViewById(R.id.layout_home_search);
+                        if (searchLayout != null) {
+                            containerHomepage.smoothScrollTo(0, searchLayout.getTop());
+                        }
+                    });
+                }
             });
             etHomeSearch.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_GO
@@ -781,11 +795,37 @@ public class MainActivity extends AppCompatActivity implements TabManager.TabLis
     }
 
     private void setupSystemBars() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.surface_card));
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         if (controller != null) {
             controller.setAppearanceLightStatusBars(false);
             controller.setAppearanceLightNavigationBars(false);
+        }
+
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, windowInsets) -> {
+                Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+
+                int topInset = systemBars.top;
+                int bottomInset = (ime.bottom > 0) ? ime.bottom : 0;
+                int leftInset = systemBars.left;
+                int rightInset = systemBars.right;
+
+                v.setPadding(leftInset, topInset, rightInset, bottomInset);
+
+                if (ime.bottom > 0 && etHomeSearch != null && etHomeSearch.hasFocus() && containerHomepage != null) {
+                    containerHomepage.post(() -> {
+                        View searchLayout = findViewById(R.id.layout_home_search);
+                        if (searchLayout != null) {
+                            containerHomepage.smoothScrollTo(0, searchLayout.getTop());
+                        }
+                    });
+                }
+
+                return windowInsets;
+            });
         }
     }
 
